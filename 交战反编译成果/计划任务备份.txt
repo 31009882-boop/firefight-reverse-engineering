@@ -1,3 +1,74 @@
+[2026-04-05 13:35 | 技术主线恢复 | Desktop 独立 World Diagnostics 页签落地]
+
+本轮目标：
+1. 在 GitHub 仓库接通后，立刻回到 `world.dat` / Desktop 验证主线，而不是继续停在仓库整理层。
+2. 补当前 Desktop 的一个高价值验证缺口：把 `WorldDiagnosticsSummary` 从 map/scenario 长文本中独立出来，做成可直接查看的 map-level 诊断区域。
+3. 保持事实边界：这轮只改验证层展示与 formatter，不扩大 parser 接受条件、不引入新的世界格式结论。
+
+本轮前置事实：
+1. `游戏理解.txt` 与 `FirefightWorkbench_WorldInstance_Anomaly_Check.txt` 已明确：
+- `prototype-gap-family` 的最佳代表仍是 `SELI`
+- `sentinel-adjacent-family` 的最佳代表仍是 `UA1T`
+- 这些 family diagnosis 已经在 Workbench/summary 文本层存在
+2. 当前 Desktop 的问题不是“没有 diagnostics”，而是 diagnostics 仍被埋在：
+- 左侧 `Map Summary`
+- 右侧 `Inspector Details`
+  的长文本里，导致后续复查 family 证据时需要来回滚屏。
+3. 因此当前最值钱的 UI 侧推进不是再加花哨交互，而是把 map-level `World Diagnostics` 独立成稳定入口。
+
+本轮修改前备份：
+1. 临时备份目录：`交战反编译成果\\备份\\20260405_120000_worlddiag_panel_tmp`
+2. 已备份文件：
+- `FirefightDesktop\\FirefightDesktopForm.cs`
+- `FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- `计划任务备份.txt`
+- `过往更新记录.txt`
+- `过往对话记录.txt`
+- 根目录启动产物备份：`...\\runtime_root_before_refresh`
+
+本轮实际改动：
+1. `FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- 为 `BuildMapSummary(...)` 增加 `includeWorldDiagnostics` 参数
+- 新增 `BuildWorldDiagnosticsReport(MapBrowseData map)`
+- 让 Desktop 可以把 map overview 与 world diagnostics 正式拆层，而不必再二次拼接/截取文本
+2. `FirefightDesktop\\FirefightDesktopForm.cs`
+- 新增独立 `worldDiagnosticsTextBox`
+- 将右下区域改成两个页签：
+  - `Inspector Details`
+  - `World Diagnostics`
+- 左侧 `Map Summary` 改为只显示概览，不再重复塞入完整 world diagnostics
+- 载入地图时直接把当前 map 的 `WorldDiagnosticsReport` 写入独立页签
+3. 本轮没有修改：
+- `FirefightAssetInspector.cs`
+- `world.dat` parser acceptance
+- anomaly family 计数
+
+本轮验证：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on `FirefightDesktop`：成功
+4. 根目录 `FirefightDesktop.exe` 已刷新到最新 publish
+5. 实际启动根目录 `FirefightDesktop.exe` smoke：成功
+- `STARTED_OK`
+- `PID=43904`
+- `MAINWINDOW=3737404`
+- `TITLE=Firefight Desktop Verification`
+
+本轮关键结论：
+1. 当前 Desktop 终于有了专门承载 map-level world family evidence 的固定入口，后续复查 `SELI/UA1T` 不必再在概览和详情框之间来回翻找。
+2. 这轮是“验证层结构优化”，不是新的协议猜测；`prototype-gap-family / sentinel-adjacent-family` 的事实边界没有变化。
+3. 下一轮最自然的 parser-facing 继续方向已经更明确：
+- 围绕 `SELI` 做 prototype-closure / supplemental-resolution 方向的 targeted work
+- 围绕 `UA1T` 做 sentinel-adjacent / alternate-count family 的 targeted work
+
+本轮收口状态：
+1. 已完成 `过往更新记录.txt / 过往对话记录.txt` 回填
+2. 已生成稳定快照：`交战反编译成果\\备份\\20260405_134500_worlddiag_panel_verified_stage`
+3. 已刷新 `交战反编译成果\\文档备份`
+4. 下一步可直接选择：
+- 将本轮代码提交并推送到已创建的 GitHub 仓库
+- 或继续围绕 `SELI/UA1T` 做 parser-facing targeted work
+
 [2026-04-05 11:35 | GitHub 仓库已创建并首推 | public origin 绑定完成]
 
 本轮目标：

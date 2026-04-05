@@ -38,7 +38,7 @@ internal static class ScenarioSnapshotFormatter
         return ResolveFilter(filterLabel).Label;
     }
 
-    public static string BuildMapSummary(MapBrowseData map)
+    public static string BuildMapSummary(MapBrowseData map, bool includeWorldDiagnostics = true)
     {
         var builder = new StringBuilder();
         builder.AppendLine($"Root: {map.RootName}");
@@ -61,7 +61,10 @@ internal static class ScenarioSnapshotFormatter
         builder.AppendLine($"Deployment count: {map.ScenarioData?.Scenarios.Sum(item => item.Deployments.Count) ?? 0}");
         builder.AppendLine($"World prototype count: {map.WorldPrototypeTable?.Entries.Count ?? 0}");
         builder.AppendLine($"World instance count: {map.WorldInstanceProbe?.ParsedCount ?? 0}");
-        AppendWorldDiagnosticsSection(builder, map);
+        if (includeWorldDiagnostics)
+        {
+            AppendWorldDiagnosticsSection(builder, map);
+        }
 
         if (map.ScenarioData is not null)
         {
@@ -123,6 +126,23 @@ internal static class ScenarioSnapshotFormatter
             builder.AppendLine($"Scenario file: {map.ScenarioFilePath}");
         }
 
+        return builder.ToString().TrimEnd();
+    }
+
+    public static string BuildWorldDiagnosticsReport(MapBrowseData map)
+    {
+        var builder = new StringBuilder();
+        builder.AppendLine($"{map.MapCode} | World Diagnostics");
+        builder.AppendLine(new string('=', Math.Max(24, map.MapCode.Length + 20)));
+        builder.AppendLine($"Root: {map.RootName}");
+        builder.AppendLine($"Display name: {map.MapDisplayName}");
+        builder.AppendLine($"Map directory: {map.MapDirectory}");
+        builder.AppendLine($"World file: {map.WorldFilePath ?? "n/a"}");
+        builder.AppendLine($"World size: {(map.WorldWidth is null || map.WorldHeight is null ? "n/a" : $"{map.WorldWidth} x {map.WorldHeight}")}");
+        builder.AppendLine($"World prototype count: {map.WorldPrototypeTable?.Entries.Count ?? 0}");
+        builder.AppendLine($"World instance count: {map.WorldInstanceProbe?.ParsedCount ?? 0}");
+        builder.AppendLine();
+        AppendWorldDiagnosticsSection(builder, map);
         return builder.ToString().TrimEnd();
     }
 

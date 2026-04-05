@@ -1,3 +1,53 @@
+[2026-04-05 13:35 | 次日第7次更新 | Desktop 独立 World Diagnostics 页签]
+类型：Desktop 验证层结构优化 + formatter 分层输出 + 启动验证
+主要改动：
+1. `交战反编译成果\\FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- `BuildMapSummary(...)` 新增 `includeWorldDiagnostics` 参数
+- 新增 `BuildWorldDiagnosticsReport(MapBrowseData map)`
+- 让 map 概览与 world diagnostics 可被独立消费，而不是永远混成一段长文本
+2. `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- 新增独立 `worldDiagnosticsTextBox`
+- 右下详情区改成页签结构：
+  - `Inspector Details`
+  - `World Diagnostics`
+- `Map Summary` 现在只保留 map overview，不再重复吞完整 world diagnostics
+- 载入地图时将 `BuildWorldDiagnosticsReport(...)` 的结果直接灌入独立页签
+3. 发布链：
+- 重新 build / publish `FirefightDesktop`
+- 刷新根目录 `FirefightDesktop.exe`
+- 同步根目录 sidecar dll
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightDesktop.exe`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on `FirefightDesktop`：成功
+4. 根目录启动 smoke：成功
+- `STARTED_OK`
+- `EXE=D:\桌面\交战反编译项目\交战反编译成果\FirefightDesktop.exe`
+- `PID=43904`
+- `MAINWINDOW=3737404`
+- `TITLE=Firefight Desktop Verification`
+
+关键结论：
+1. 这轮没有扩大 parser 接受条件，也没有改变 anomaly family 计数。
+2. 这轮的真实价值是把当前已经存在的 `world.dat` family diagnosis 从 summary/details 长文本里剥离成稳定、可直接复查的 Desktop 入口。
+3. 这为下一轮继续盯 `SELI` 的 prototype-gap 路线和 `UA1T` 的 sentinel-adjacent 路线创造了更低摩擦的人工验证界面。
+
+备注：
+1. 本轮临时备份目录：`交战反编译成果\\备份\\20260405_120000_worlddiag_panel_tmp`
+2. 本轮运行时根目录产物备份：`交战反编译成果\\备份\\20260405_120000_worlddiag_panel_tmp\\runtime_root_before_refresh`
+3. 本轮稳定快照已生成：`交战反编译成果\\备份\\20260405_134500_worlddiag_panel_verified_stage`
+4. `交战反编译成果\\文档备份` 已刷新
+
 [2026-04-05 11:35 | 次日第6次更新 | public GitHub 仓库创建与首推完成]
 类型：Git 初始化收口 + 首个 commit + GitHub 仓库创建与推送
 主要改动：

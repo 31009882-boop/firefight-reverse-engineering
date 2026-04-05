@@ -1,3 +1,37 @@
+[2026-04-05 13:35 | 对话摘要 27]
+用户本轮意图：
+1. 用户在公开仓库建好后明确要求“继续推进项目”，而不是停留在 GitHub 基础设施层。
+2. 这意味着我必须立刻回到 `Firefight` 反编译/验证主线，做真实代码推进。
+
+本轮实际响应摘要：
+1. 我先回读了 `游戏理解.txt`、当前 anomaly 报告和关键源码，确认：
+- `prototype-gap-family` / `sentinel-adjacent-family` 的 report-layer taxonomy 已经存在
+- 真正的缺口不是“缺结论”，而是 Desktop 还没有独立的 `World Diagnostics` 可视入口
+2. 我按规则先备份：
+- `FirefightDesktopForm.cs`
+- `ScenarioSnapshotFormatter.cs`
+- 3 份 handoff 文档
+- 根目录启动产物
+3. 然后我把共享 formatter 拆出：
+- `BuildWorldDiagnosticsReport(MapBrowseData map)`
+- 并给 `BuildMapSummary(...)` 增加了 `includeWorldDiagnostics` 参数
+4. 在 Desktop 里，我把右下区域改成两个页签：
+- `Inspector Details`
+- `World Diagnostics`
+5. 同时把左侧 `Map Summary` 收敛成 overview，避免和新页签重复堆叠相同 diagnostics。
+6. 最后我重新 build / publish Desktop，并再次实际运行根目录 `FirefightDesktop.exe`，确认启动仍然正常。
+
+本轮新结论：
+1. 当前 Desktop 已经不只是“能显示 diagnostics”，而是第一次把 map-level world family evidence 变成了稳定、低摩擦的独立入口。
+2. 这轮没有新增 parser 猜测，也没有洗白 `SELI/UA1T`；它只是把现有逆向证据更好地暴露出来，为下一轮 targeted parser work 铺路。
+3. 下一轮最值钱的方向已经更明确：
+- `SELI` -> prototype-gap / supplemental-resolution
+- `UA1T` -> sentinel-adjacent / alternate-count
+
+下一轮最值得继续的点：
+1. 直接围绕 `SELI` 和 `UA1T` 做 parser-facing targeted work，而不是继续做泛化 UI 装饰。
+2. 如果需要更进一步的 Desktop 验证支持，可以考虑把当前 tab 中的 world diagnostics 再做 map jump / copy/export 辅助，但这应该服从 parser 主线，不应反客为主。
+
 [2026-04-05 11:35 | 对话摘要 26]
 用户本轮意图：
 1. 在我确认当前仓库还没有远端之后，用户明确指定 GitHub 仓库可见性为 `public`。

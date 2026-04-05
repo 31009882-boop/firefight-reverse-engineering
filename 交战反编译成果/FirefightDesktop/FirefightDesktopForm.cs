@@ -20,6 +20,7 @@ internal sealed class FirefightDesktopForm : Form
     private readonly MapPreviewControl mapPreviewControl;
     private readonly ListView deploymentListView;
     private readonly TextBox definitionTextBox;
+    private readonly TextBox worldDiagnosticsTextBox;
     private readonly ToolStripStatusLabel statusLabel;
     private readonly Font monoFont = new("Cascadia Mono", 9f, FontStyle.Regular, GraphicsUnit.Point);
     private Image? currentMapImage;
@@ -161,6 +162,17 @@ internal sealed class FirefightDesktopForm : Form
             BackColor = Color.White,
         };
 
+        worldDiagnosticsTextBox = new TextBox
+        {
+            Dock = DockStyle.Fill,
+            Multiline = true,
+            ReadOnly = true,
+            ScrollBars = ScrollBars.Both,
+            WordWrap = false,
+            Font = monoFont,
+            BackColor = Color.White,
+        };
+
         statusLabel = new ToolStripStatusLabel();
 
         BuildLayout();
@@ -245,9 +257,19 @@ internal sealed class FirefightDesktopForm : Form
         deploymentPanel.Controls.Add(CreateSectionLabel("Deployments", DockStyle.Top));
         rightDetailSplit.Panel1.Controls.Add(deploymentPanel);
 
+        var detailTabs = new TabControl
+        {
+            Dock = DockStyle.Fill,
+        };
+        var inspectorTabPage = new TabPage("Inspector Details");
+        inspectorTabPage.Controls.Add(definitionTextBox);
+        var worldDiagnosticsTabPage = new TabPage("World Diagnostics");
+        worldDiagnosticsTabPage.Controls.Add(worldDiagnosticsTextBox);
+        detailTabs.TabPages.Add(inspectorTabPage);
+        detailTabs.TabPages.Add(worldDiagnosticsTabPage);
+
         var definitionPanel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(6, 6, 12, 12) };
-        definitionPanel.Controls.Add(definitionTextBox);
-        definitionPanel.Controls.Add(CreateSectionLabel("Inspector Details", DockStyle.Top));
+        definitionPanel.Controls.Add(detailTabs);
         rightDetailSplit.Panel2.Controls.Add(definitionPanel);
 
         rightBodySplit.Panel2.Controls.Add(rightDetailSplit);
@@ -533,13 +555,15 @@ internal sealed class FirefightDesktopForm : Form
                     Array.Empty<ScenarioDeployment>(),
                     Array.Empty<ScenarioSpecialRecordCandidate>());
                 definitionTextBox.Clear();
+                worldDiagnosticsTextBox.Clear();
                 statusLabel.Text = $"Failed to load {summary.MapCode}";
                 return;
             }
 
             ReplaceCurrentContoursImage(TryLoadContoursImage(currentMap));
             headerLabel.Text = $"{currentMap.MapCode} | {currentMap.MapDisplayName}";
-            mapSummaryTextBox.Text = ScenarioSnapshotFormatter.BuildMapSummary(currentMap);
+            mapSummaryTextBox.Text = ScenarioSnapshotFormatter.BuildMapSummary(currentMap, includeWorldDiagnostics: false);
+            worldDiagnosticsTextBox.Text = ScenarioSnapshotFormatter.BuildWorldDiagnosticsReport(currentMap);
             PopulateScenarioChoices(currentMap);
             statusLabel.Text = $"{currentMap.MapCode}: {currentMap.ScenarioData?.Scenarios.Count ?? 0} scenarios, {(currentMap.ScenarioData?.Scenarios.Sum(item => item.Deployments.Count) ?? 0)} deployments";
         }
