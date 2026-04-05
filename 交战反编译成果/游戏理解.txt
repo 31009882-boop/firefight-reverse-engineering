@@ -1,0 +1,1099 @@
+[2026-04-04 22:55 | Firefight tutorial special-route 原版对照补充理解]
+
+新增稳定结论：
+1. `TRCH / H112 / FLAU` 的 tutorial special-record 现在不应只被理解成“能解析出 route”，而应进一步固化为“不能按普通 deployment 坐标锚定”的特殊记录族。
+2. 这三条 tutorial 记录的 raw deployment 坐标稳定表现为 `(0,0)`，但其 `0x1401` route 与 `world-link` 都稳定落在地图有效空间中，因此：
+- raw deployment 坐标不再适合当作桌面复刻的主要空间真相
+- route/world-link geometry 才是当前最可信的原版空间基线
+3. 当前已落盘验证的三条原版对照基线：
+- `TRCH/Tutorial/American-M10 Wolverine@0x2751`：`raw=(0,0)`，`route=6pts`，`start=(718,2390)`，`end=(2641,2494)`，`world=6/6`，`d[min/avg/max]=95/190/290`
+- `H112/Tutorial/American-M4A3 Sherman@0x25CF`：`raw=(0,0)`，`route=9pts`，`start=(2616,1326)`，`end=(305,599)`，`world=9/9`，`d[min/avg/max]=76/233/349`
+- `FLAU/Tutorial/American-M4A3 Sherman@0x2BBF`：`raw=(0,0)`，`route=2pts`，`start=(2182,2783)`，`end=(1598,3107)`，`world=2/2`，`d[min/avg/max]=119/127/136`
+4. 因此当前最稳妥的复刻/验证规则应区分两类：
+- 普通 deployment：raw deployment 坐标仍是主要原版锚点
+- tutorial special-route deployment：应以 route/world-link geometry 为主要对照基线，raw deployment 坐标只保留为原始字节误读痕迹
+5. 这条规则当前已经被落实到桌面层：
+- scenario/export 摘要中新增 `Original comparison baseline`
+- special-route 的 sample 行已显式标成 `pos=raw(...)`
+- Desktop 地图预览不再把这类记录误导性绘制在 `(0,0)` 原点
+6. 这轮没有扩大 `parser acceptance`，也没有改动 `world.dat` count model；改动只发生在：
+- 复刻对照摘要
+- Desktop 详情说明
+- Desktop 原点误绘纠偏
+
+[2026-04-03 02:07 | Firefight 教程 route 系统补充理解 3]
+
+新增工程层理解：
+1. tutorial route 系统不仅要能被解析，还必须能被长期稳定地可视化和人工核对，否则后续 `world.dat` 对照会反复退回文本层。
+2. 因为 `ScenarioDeployment` 现在已包含数组字段，任何依赖 record 全量相等性的 UI 选中态都不够稳，应改为稳定主键式追踪；当前用 `RecordOffset` 更安全。
+3. special route 在 UI 层属于“低频高价值信息”，最适合：
+- 在部署列表里显式标注
+- 在 scenario 下拉里显示数量
+- 在地图上支持独立开关
+- 在详情页展示点序明细
+4. 对密集 route，全部节点都编号会损伤可读性，因此 UI 表达需要分层：
+- 选中路线：全量编号
+- 非选中密集路线：只标首尾或少量关键点
+5. 这类表达优化不是装饰，而是逆向工程质量的一部分，因为它直接决定后续 AI 和人工是否能稳定看懂 tutorial script 结构。
+[2026-04-03 01:52 | Firefight 教程 route 系统补充理解 2]
+
+新增核心结论：
+1. `0x1401 + x(float) + y(float)` 结构不是三张教程图的孤例，而是教程系统的通用结构。
+2. 当前已通过机器扫描确认：
+- 它出现在 `14` 个 `*-scenarios.dat` 文件中
+- 合计至少有 `85` 个有效 route 点
+- 高度集中于 `Tutorial` 场景
+3. 受影响地图当前至少包括：
+- `ASTM`
+- `BLNU`
+- `CAMB`
+- `CPRK`
+- `FLAU`
+- `H112`
+- `JWVG`
+- `LBCH`
+- `NSPN`
+- `NSVL`
+- `RMLY`
+- `ROIM`
+- `TRCH`
+- `VBOC`
+4. 这说明 `scenarios.dat` 的 tutorial 段并不是“普通部署列表 + 少量杂质”，而更像“普通部署记录之后还会拼接教程脚本 route 数据块”。
+5. 因此完整复刻时，scenario loader 至少需要分两层：
+- 普通 battle deployment records
+- tutorial special/script route records
+6. 当前 `FirefightDesktop` 已经能直接把这类 route 叠加到地图上，这对后续做 `world.dat instance region` 的空间对照非常关键，因为现在可以直接观察：
+- route 是否贴着道路/村镇/高地
+- route 是否通向特定 world objects
+- route 与教程特殊车辆/单位之间的空间关系
+7. 仍然不能过度下结论的点：
+- `0x1401` 究竟代表移动路线、镜头路线、提示顺序还是触发链
+- route 点是否总是与一个 `flag9 != 0/1` 的特殊 deployment 绑定
+- tutorial 之外是否存在语义相同但编码不同的脚本块
+[2026-04-03 01:14 | Firefight 教程特殊记录补充理解]
+
+新增核心结论：
+1. `FLAU/H112/TRCH` 的 tutorial 场景中存在 3 条 `flag9 != 0/1` 的车辆记录：
+- `FLAU/Tutorial/American-M4A3 Sherman` -> `flag9=2`
+- `H112/Tutorial/American-M4A3 Sherman` -> `flag9=9`
+- `TRCH/Tutorial/American-M10 Wolverine` -> `flag9=6`
+2. 这 3 条记录不能再简单理解成普通 deployment，因为它们表面上虽然符合：
+- `delay=0`
+- `flag4=0`
+- `scale=1`
+但把后 16 字节硬当 `(x,y,angle,extra)` 会得到一组几乎为零的伪值，只是恰好没触发旧解析器的范围校验。
+3. 直接查看原始字节后可以确认，这些 tutorial 离群记录真实更像：
+- deployment 风格头部 `00 00 00 00 | 00 | 00 00 80 3F | flag9`
+- 紧跟 3 个 `00`
+- 再跟一串重复的 `01 14 + x(float) + y(float)`
+4. 当前已稳定解析出的 route 点数量为：
+- `FLAU`：2 点
+- `H112`：9 点
+- `TRCH`：6 点
+5. 因此最稳妥的引擎理解是：`scenarios.dat` 并不只包含“真实战斗部署对象”，至少在 tutorial 末尾还混入了“教程 special object / script route / guide path”一类异构记录。
+6. 这也解释了为什么这 3 条记录总是同时满足：
+- 位于 `Tutorial`
+- 属于 `Vehicles`
+- `flag9` 为 `2/6/9` 这类非常规值
+- 旧摘要里看起来坐标是 `(0,0)`
+7. 对完整复刻的实际约束是：
+- 不能把 `GroupByte` 在全局上硬命名为 attacker/defender
+- 不能把“读到单位名 + 26 字节 payload”简单等同于真实战斗部署
+- 运行时 loader 最终必须能区分“普通部署记录”和“教程 special/script 记录”
+8. 当前仍未完全确定 `0x1401` 的最终语义。它可能是教程移动路径、镜头引导路径、事件触发节点串，或其他教程脚本专用坐标列表。后续必须继续拿 `world.dat instance region`、地图坐标和可能的 runtime 入口去交叉验证。
+[2026-04-02 10:35 | Firefight 安卓包逆向复刻核心理解]
+
+一、证据基线
+1. 本理解基于本地 APK 解包结果，不是纯外部猜测。已确认存在：
+- `classes.dex` / `classes2.dex`
+- `lib/arm64-v8a/libmain.so` 与 `libSDL2*.so`
+- `assets/Data/*` 的单位、武器、装备、姓氏、模组定义
+- `assets/Maps/*` 与 `assets/Custom Maps/*` 的地图、世界数据、任务数据
+- `assets/Images/*`、`assets/Sounds/*` 的完整表现资源
+2. 从 `classes.dex` 可见 Java 包名为 `com.windowsgames.firefight`，并依赖 `org.libsdl.app.SDLActivity`。
+3. 从 `libmain.so` 字符串与符号可见核心类和系统包括：
+- `AppDelegate`
+- `PackageData::loadMapAndScenarioData`
+- `Game::createNewGameWithPackage...`
+- `Game::doAServerTick...`
+- `RouteFinder::calculateMovementPenalties...`
+- `SceneChooserDesktop`
+- `SceneCustomUnits`
+- `InternetConnection`
+- `BillingManager`
+
+二、游戏本质理解
+1. 这不是抽象化的“坦克互点”游戏，而是偏即时战术模拟的二战小到中规模合成兵种战场。
+2. 玩法核心不是单纯数值克制，而是“单位编制 + 地形 + 视野 + 装甲角度 + 弹药类型 + 抑制/士气 + 路径/站位 + 任务目标”的系统叠加。
+3. 玩家控制层面至少包括：
+- 选择国家、地图、任务、月份年份
+- 在自定义对局中按信用点购买部队
+- 对步兵、反坦克炮、车辆、迫击炮、重机枪等下达移动、射击、停火、装填、上下车、投掷、呼叫火炮等命令
+- 通过占点、歼灭、守住阵地等方式完成任务
+4. 表现层并非 3D，而是 2D 俯视/斜视混合的精细贴图与动画系统；但底层规则明显不是“贴图驱动”，而是对象状态驱动。
+
+三、技术架构判断
+1. 安卓层只是平台外壳。
+- `classes.dex` 主要负责 SDL Activity、Google Play 计费、资源/权限桥接。
+- 游戏主循环不在 Java/Kotlin，而在 `libmain.so`。
+2. 核心引擎是 SDL2 + 自研 C++ 游戏框架。
+- 依赖 `libSDL2.so`、`libSDL2_image.so`、`libSDL2_ttf.so`、`libSDL2_mixer.so`、`libSDL2_net.so`
+- 同时依赖 `libGLESv1_CM.so`、`libGLESv2.so`、`libOpenSLES.so`
+3. 结论：这是“SDL2 承载的自研 2D 战术引擎”，不是 Unity、Unreal、Godot 或纯 Java Android 游戏。
+4. 因为已有 `SceneChooserDesktop`，可推断作者原始代码本就支持桌面端场景分支；安卓包只是同一核心引擎的移动平台变体。
+
+四、数据驱动程度判断
+1. 游戏大量内容是外部数据驱动，不是全部硬编码。
+2. `assets/Data` 的主要内容：
+- `Infantry/`：步兵班组与特种兵定义
+- `Vehicles/`：车辆与坦克定义
+- `AT Guns/`：反坦克炮与火炮定义
+- `Weapons/`：武器定义
+- `Surnames/`：各国姓名库
+- `equipment_*_WW2.txt`：各国装备入口清单
+3. 单位文件是接近 XML 的结构化文本，例如：
+- `<squad><description>...`
+- `<availability>`
+- `<man>`
+- `<vehicle>`
+- `<atgun>`
+- `<weapon>`
+4. 这意味着“单位数据库复刻”优先级极高，而且可以先复用原始数据，再补引擎逻辑。
+
+五、单位系统理解
+1. 基础逻辑单位不是单个贴图，而是 `squad`。
+2. 一个 `squad` 可以是：
+- 步兵班
+- 反坦克炮组
+- 车辆乘员组
+- 坦克/突击炮/装甲车
+3. 步兵文件体现了以下机制：
+- 班内每个 `man` 独立配置职业、武器、弹药
+- 有班长、副班长、机枪副射手等职位
+- 弹药按武器类型记录
+4. 车辆文件体现了以下机制：
+- 车辆总类 `TYPE_ASSAULT_GUN` 等
+- 发动机、马力、转速、可靠性、档位、转向机制
+- 车体/上层结构/炮塔分区装甲
+- 倾角以 `37@55` 这类格式记录，说明装甲厚度和角度共同参与判定
+- 乘员岗位明确区分驾驶员、电台员、装填手、炮手、车长
+- 主炮/副武器和弹种、库存分开记录
+5. 反坦克炮文件体现了以下机制：
+- 炮架底座与炮身分贴图
+- 可转角度
+- 质量
+- 是否可人力移动
+
+六、武器与弹道系统理解
+1. 武器数据不是简单攻击力，而是物理近似参数。
+2. 本地样本显示至少存在：
+- 口径
+- 身管长度
+- 射速
+- 装填方式
+- 弹匣容量
+- 弹药初速
+- 弹丸质量
+- 弹种风味 `FLAVOUR_APCBC`、`FLAVOUR_HE`、`FLAVOUR_SMOKE` 等
+3. 这说明复刻时必须保留至少以下子系统：
+- 射击节奏与换弹
+- 弹种切换
+- 穿甲与破片/爆炸差异
+- 烟雾弹与遮蔽效果
+
+七、地图与任务系统理解
+1. 每张地图目录通常包含：
+- `*-map.jpg`
+- `*-contours.png`
+- `*-tileXY.jpg`
+- `*-world.dat`
+- `*-scenarios.dat`
+2. 以 `AMST` 为例：
+- `AMST-world.dat` 文件头显示 `8192 x 6144` 的世界尺寸信息
+- 地图切片文件名呈规则网格，说明桌面重建可以先做瓦片拼接渲染
+3. `scenarios.dat` 不是完全不可读黑盒。
+- 开头已能直接读出长度前缀字符串，如地图名 `Amsterdam`
+- 后续还能读到任务标题、任务描述、参战单位名，说明这是可逐步逆向的二进制记录格式
+4. `world.dat` 体积远大于 `scenarios.dat`，说明其承担地形、障碍、导航、对象布局或网格层信息。
+5. `Custom Maps/` 与 `Map Editor` 相关资源同时存在，说明自定义地图与官方地图共用同一资产流水线。
+
+八、模组与内容包系统理解
+1. `assets/Mod/mod.txt` 定义了：
+- 模组名
+- 年份跨度
+- 攻守信用点
+- 文字颜色
+- 参战国
+- 国旗
+- 语音包
+- 默认 rank 图
+- 对应装备表
+2. 这说明游戏本身已有“官方内容 + 模组内容”的统一装载能力。
+3. 复刻时不能把内容写死在代码里，否则会破坏模组能力。
+
+九、联网系统理解
+1. `libmain.so` 里存在完整联网系统符号：
+- `InternetConnection`
+- `packet forwarder`
+- `HTTPRequest`
+- 主机/客户端连接逻辑
+- 客户端单位名、火炮 HE/Smoke 选择同步
+2. 这说明联网不是第三方 SDK 黑盒，而是作者自管协议和服务器发现流程。
+3. 完整复刻若要达到“所有玩法完整”，联机必须被列入后期硬目标，而不是可选附加项。
+
+十、桌面版复刻原则
+1. 绝不能先写一个“看起来像”的简化小游戏再硬说是复刻。
+2. 正确路径必须是：
+- 先最大化复用原始数据与资源
+- 再逐步补齐原生二进制中硬编码的模拟规则
+- 最后做桌面交互、联网和存档收口
+3. 桌面实现的核心模块顺序应为：
+- 资源与数据解析层
+- 地图/任务二进制解析层
+- 核心世界对象模型
+- 行为/射击/伤害/士气/路径系统
+- UI 场景系统
+- 存档与联网
+4. 如果局部逻辑暂时无法从二进制精确还原，必须先记录“证据、推断、待验证点”，不能凭空拍脑袋写死。
+
+十一、当前最重要的未知项
+1. `world.dat` 的完整字段布局仍未完全解析。
+2. `scenarios.dat` 除头部以外的完整记录边界仍需继续逆向。
+3. AI 决策、索敌、威胁评估、掩体选择、士气波动、火控优先级大概率主要在 `libmain.so`。
+4. 穿甲、跳弹、炸点伤害、抛射曲线、压制等公式仍需通过 native 符号与行为交叉验证。
+5. 联机包格式、存档格式尚未拆出。
+
+十二、当前复刻指导原则
+1. 以“保真复刻原作系统行为”为第一优先，不以快速产出假成品为目标。
+2. 以“数据驱动优先、硬编码补足”为方法论。
+3. 以“桌面可执行程序逐步落地”为交付路径。
+4. 所有后续 AI 必须先读本文件，再继续编码与逆向。
+
+[2026-04-02 11:22 | 追加验证结论]
+
+十三、关于当前 Windows 可执行产物的定位
+1. 当前成果目录里已经有一个真实可运行的 Windows 单文件 EXE：
+- `交战反编译成果\FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`
+2. 它目前不是最终战斗版，而是“逆向工作台”。
+3. 这个工作台已经能直接围绕原始 assets 做以下事情：
+- 总体盘点模组、国家、地图、单位数据库规模
+- 读取 `world.dat` / `scenarios.dat` 头部
+- 提取 `scenarios.dat` 的任务标题与简介样本
+- 按单位名输出原始定义文件
+- 按地图代码输出单地图报告
+4. 因此，当前复刻已经从“只有文档理解”前进到了“有验证能力的桌面可执行工具”。
+
+十四、地图层新增确认
+1. 通过工作台实测，`world.dat` 头部宽高与 tile 网格一一对应。
+2. 当前最合理的阶段性理解是：
+- 每个 tile 对应 `1024 x 1024` 世界像素
+- 世界总宽高 = tile 网格宽高 * 1024
+3. 已实测样本：
+- `AMST`：8x6 tile => `8192x6144`
+- `ZCRD`：4x4 tile => `4096x4096`
+4. 这说明地图视觉瓦片、世界边界和二进制头部并非独立系统，而是同一张图的多层表示。
+
+十五、scenario 层新增确认
+1. `scenarios.dat` 不只是地图名容器，它稳定包含：
+- 地图标题
+- 地图简介
+- 多个任务标题
+- 多个任务简介
+- 大量单位名字符串
+2. 以 `ZCRD` 为例，已经可以提取出：
+- `Opening Salvoes`
+- `Stubborn Pockets`
+- `Fightback`
+- `Borrowed Armour`
+- `Three Columns`
+- `Morning Frost`
+- `Last Chance`
+3. 当前标题尾部偶尔残留单个脏字符，说明字符串边界虽然已接近可用，但还没有完全做成精确结构化解析。
+4. 这也说明下一阶段的最佳切入点不是盲猜，而是继续在 `scenarios.dat` 中定位：
+- 字符串长度前缀
+- 任务记录起止
+- 单位记录固定步长或分段结构
+
+十六、装备表层新增确认
+1. 并非所有 `equipment_*_WW2.txt` 都老老实实按注释分段。
+2. `equipment_chinese_WW2.txt` 已证实基本不依赖标准 `// infantry / // AT guns / // vehicles` 注释。
+3. 所以任何正式解析器都必须优先按“定义文件实际落在哪个目录”判定单位类别。
+4. 这条规则对后续完整商店/买兵界面复刻是硬约束。
+
+十七、自定义地图层新增确认
+1. 自定义地图不仅复用官方主格式，还可能内置本地图物件素材目录，例如：
+- `Trees`
+- `Buildings`
+- `Objects`
+- `Barriers`
+2. 这说明 `world.dat` 后续很可能并不是只引用全局资源名，也会引用地图本地物件名。
+3. 复刻时地图加载器必须保留“地图目录私有资源优先级”。
+
+[2026-04-02 12:21 | 追加验证结论 2]
+
+十八、scenario 层从“文本抽样”进入“部署结构化”
+1. 通过本轮 Workbench 解析，`scenarios.dat` 已不再只是可读字符串集合，而是可以稳定分层读取：
+- 地图名
+- 地图描述
+- 任务标题
+- 任务描述
+- 任务元数据块
+- 部署记录列表
+2. 当前最可靠的结构判断是：
+- 文件头 `int32`
+- 地图名：长度前缀字符串
+- 地图描述：长度前缀字符串
+- 对每个任务：
+  - 任务标题：长度前缀字符串
+  - 任务描述：长度前缀字符串
+  - 61 字节任务元数据
+  - 若干部署记录
+3. 部署记录当前可稳定读取为：
+- `int32` 名称长度
+- 单位名 ASCII
+- 26 字节部署载荷
+4. 载荷中已稳定可读字段：
+- `x`
+- `y`
+- `angleRadians`
+- `extraValue`
+5. 目前 `extraValue` 仍是未命名字段，但它明显与单位站位/部署参数相关，而不是噪声。
+
+十九、已验证的任务数量样本
+1. `ZCRD`：已解析 9 个任务
+- `Opening Salvoes`
+- `Stubborn Pockets`
+- `Fightback`
+- `Borrowed Armour`
+- `Three Columns`
+- `Morning Frost`
+- `Last Chance`
+- `Frayed Ends`
+- `Tutorial`
+2. `ASTM`：已解析 8 个任务
+- `Blitzkrieg`
+- `Battle Of Arras`
+- `To Paris!`
+- `Operation Goodwood`
+- `Escape The Noose`
+- `Panzers`
+- `Liberation Of France`
+- `Tutorial`
+3. 这与 Firefight “每张地图多任务”设计高度一致，说明解析方向正确。
+
+二十、关于任务元数据的当前推断
+1. 每个任务标题/描述后紧跟的前 8 个 `int32` 很可能是任务级核心参数。
+2. 这些字段在不同任务间会稳定变化，尤其明显包含：
+- 某种双方阵营/国家编码
+- 月份
+- 年份
+- 其他部署或自定义对局相关参数
+3. 例子：
+- `Opening Salvoes`：`12, 7, 6, 1941, 8, 16, 8, 16`
+- `Fightback`：`7, 12, 1, 1942, 8, 16, 8, 16`
+4. 一个很强的推断是其中至少有两项是“攻守双方国家代码”，另有两项与年月相关。
+
+二十一、部署层对完整复刻的意义
+1. 一旦开局部署可稳定读取，完整复刻就不再需要手工重摆任务开局。
+2. 这意味着后续 Windows 版战斗运行时可以直接复用原始任务数据，按原始坐标生成单位。
+3. 这一步对“完整玩法复刻”的价值非常高，因为任务开局、阵营组合、单位编成已经开始直接落地。
+
+二十二、world 层新增确认
+1. `world.dat` 的头部字段仍有效：
+- unknown
+- world width
+- world height
+- marker
+2. 自定义图 `YSXC-world.dat` 已能抽到真实物件词元，例如：
+- `Bollard 7`
+- `Car 13`
+- `Car 14`
+3. 这进一步证明 `world.dat` 并非只有纯网格数值，也承载物件名称表或与物件实例紧密相关的数据。
+4. 再结合 `YSXC` 目录下的：
+- `Barriers`
+- `Buildings`
+- `Objects`
+- `Trees`
+   可合理判断 world 数据会与地图私有资源目录联动。
+
+二十三、当前最该攻坚的方向
+1. 把任务元数据 8 个整数正式命名。
+2. 把部署载荷前 10 个字节正式命名。
+3. 对 `FLAT-world.dat`、`ZCRD-world.dat`、`YSXC-world.dat` 做对比解析。
+4. 在 world 结构稳定后，再进入图形浏览器或战斗运行时工程。
+
+二十四、本轮对任务元数据与部署前缀的新增确认
+1. 重新生成 `ASTM` / `ZCRD` 新报告后确认：此前个别单位显示为 `[Unknown]` 只是旧报告陈旧，不是当前解析器失效。
+2. 例如：
+- `Russian-76mm` 现已稳定归入 `AT Guns`
+- `German-Panzer III Ausf F`
+- `American-M4A3 Sherman`
+   也都能稳定映射到真实定义文件。
+3. `scenarios.dat` 中每个任务 61 字节元数据的前 40 字节现在可以更强地理解为：
+- `int32 sideA nationality code`
+- `int32 sideB nationality code`
+- `int32 month`
+- `int32 year`
+- `int32 artillery HE sideA`
+- `int32 artillery HE sideB`
+- `int32 artillery smoke sideA`
+- `int32 artillery smoke sideB`
+- `float cameraCenterX`
+- `float cameraCenterY`
+4. 元数据末尾还残留 21 字节尾部字段，当前已完整保留为十六进制输出，尚未正式命名。
+5. 部署载荷前 10 字节不再只是“未知前缀”，而是已经出现稳定结构：
+- `int32 delayGuess`
+- `byte flag4`
+- `float scale`
+- `byte slot9`
+6. 其中最强证据是 `delayGuess`：
+- `ASTM` 中出现大量 `300 / 600 / 900 / 1200 / 1500 / 1800 / 2100`
+- `ZCRD` 中出现 `480 / 540 / 600`
+   这些值极像增援延迟、波次时间或出场时间，而不是随机噪声。
+7. `scale` 目前几乎稳定为 `1.0`。
+8. `flag4` 与 `slot9` 目前仍未正式命名，但已确认不是随机字节，且在不同任务中有成体系分布。
+
+二十五、本轮对 world 原型表的新增确认
+1. `world.dat` 尾部现在已经不是“只看到零散词元”，而是能稳定抽出一段结构化原型表。
+2. 当前最强工作假设是每个原型项形如：
+- `uint16 nameLength`
+- `ASCII name`
+- `uint8 flagA`
+- `uint8 flagB`
+3. 该原型表前面还会紧邻两个 `uint16`，其中第二个值在当前样本里直接等于原型数量提示值。
+4. 已验证样本：
+- `ZCRD-world.dat`：`count=31`，`hint=31`
+- `ASTM-world.dat`：`count=49`，`hint=49`
+- `YSXC-world.dat`：`count=108`，`hint=108`
+5. `YSXC` 的结果尤其关键，已抽出：
+- `Bollard 7`
+- `Car 13`
+- `Car 14`
+- `Crate 1`
+- `Firewood 3`
+- `Pallet 1`
+6. `YSXC` 地图私有素材目录匹配结果显示：
+- `Objects` 目录实现 `37/37` 完整命中
+- `Buildings` / `Trees` / `Barriers` 仍未命中
+7. 这说明当前抓到的很可能只是 `world.dat` 中“对象原型表”的其中一段，建筑、树木、屏障很可能在别的原型段或别的实例段里。
+
+二十六、这对完整复刻路线的意义
+1. 任务层现在已经不只是“能列单位”，而是开始恢复：
+- 阵营代码
+- 年月
+- 炮击资源
+- 相机中心
+- 部署波次/延迟线索
+2. world 层现在已经不只是“能抽词元”，而是开始恢复：
+- 原型名表
+- 原型数量提示
+- 原型附带的双字节标志
+3. 这意味着下一阶段可以把重点从“找字符串”转向：
+- 追原型表之后的实例列表
+- 追 world 尾部坐标/边界记录
+- 建立地图浏览器与实例化渲染
+
+[2026-04-02 13:05 | 追加验证结论 3]
+
+二十七、任务头字段命名继续收紧
+1. 重新生成 `ASTM_Report.txt` 与 `ZCRD_Report.txt` 后，可以更强地把 metadata 前 8 个整数理解为：
+- 防守方国籍代码
+- 进攻方国籍代码
+- 月份
+- 年份
+- 防守方炮击 HE
+- 进攻方炮击 HE
+- 防守方炮击 Smoke
+- 进攻方炮击 Smoke
+2. 证据来自任务文案与部署阵营统计的一致性，例如：
+- `Blitzkrieg`：British defending, German attacking
+- `Opening Salvoes`：Soviet defending, German attacking
+- `Fightback`：German defending, Soviet attacking
+3. 这比旧的“阵营A / 阵营B”命名更接近真实语义，但在没有更直接 native 证据前，仍应保留“当前最强解释”口径。
+4. metadata offset 40 对应值现已在多张地图、多条任务上稳定表现为“部署记录数量 + 1”，因此当前最合理临时命名是 `deploymentCountPlusOne`。
+
+二十八、部署载荷前缀字段的当前证据边界
+1. 部署载荷前 10 字节现在可以稳定拆成：
+- `int32 prefix32`
+- `byte flag4`
+- `float scale`
+- `byte flag9`
+2. 旧的 `delayGuess` / `team` 只是历史阶段性猜名，不应再当作已证实语义使用。
+3. 当前可靠事实只有：
+- `prefix32` 在不同任务中出现稳定离散值
+- `flag4` 与 `flag9` 在不同部署记录中会变化
+- `scale` 大多为 `1.0`
+4. 因此后续复刻时必须把这三项视为“原始结构字段”，先保真保留，再继续命名。
+
+二十九、world.dat 的命名层已确认不止一段
+1. `YSXC-world.dat` 的最新验证结果显示，单独抓第一段 `world 原型表` 只足够完整命中 `Objects`，不足以覆盖 `Buildings` / `Trees` / `Barriers`。
+2. 当把 `world.dat` 尾部命名词元一并纳入匹配后，`YSXC` 地图私有素材命中提升为：
+- `Barriers 1/1`
+- `Buildings 15/15`
+- `Objects 37/37`
+- `Trees 11/11`
+3. 这说明 `world.dat` 至少应被理解为：
+- 一段或多段结构化原型表
+- 以及额外的尾部命名段
+4. 对完整复刻的意义是：
+- 地图加载器不能只依赖单一对象名表
+- 自定义地图私有素材目录必须保留优先解析
+- 后续实例记录解析必须允许“原型索引层”和“尾部命名层”共同存在
+
+三十、当前阶段最可靠的 world 方向
+1. `ASTM-world.dat` 已确认存在 `count=49` 的原型表。
+2. `ZCRD-world.dat` 已确认存在 `count=31` 的原型表。
+3. `YSXC-world.dat` 已确认存在 `count=108` 的原型表，且结合尾部命名段后可以完整对上该图四类私有素材。
+4. 这意味着下一阶段不应再停留在“抽样词元”，而应直接推进：
+- 多段原型表识别
+- 实例记录坐标/索引提取
+- 碰撞与阻挡结构识别
+[2026-04-02 13:27 | 追加验证结论 4]
+
+三十一、单位短别名不能再被视作静态单文件映射
+1. `Russian-76mm`、`German-Panzer III Ausf F`、`American-M4A3 Sherman` 这类部署名，本质上是“同一武器族 / 车族”的短别名，不足以唯一确定定义文件。
+2. 因此 Firefight 的桌面复刻运行时必须支持：
+- 一个部署名对应多个候选定义
+- 候选定义按 scenario 月份 / 年份筛选
+- 若多个候选同名，则按该日期下最新生效的 availability 数量排序
+3. 这意味着未来完整复刻时，部署生成器不能只用字符串匹配文件名，而必须保留“definition candidates + date-aware selection”的对象模型。
+
+三十二、`availability` 已从静态 XML 字段升级为核心运行时判定依据
+1. 当前 Workbench 已确认大量单位 XML 存在：
+- `<availability>`
+- `<data><month>..</month><year>..</year><number>..</number></data>`
+2. 当前最可靠解释是：这些记录构成按时间推进的可用数量曲线，而不是无意义注释。
+3. 复刻端当前应采用的保守规则：
+- 找到不晚于任务日期的最后一条 availability
+- 以该条记录的 `number` 作为当前日期下的活跃强度
+- 若多个候选都匹配同一短别名，则优先选择活跃强度更高者
+4. 该规则已被实证验证，不再只是推测。
+
+三十三、本轮已验证的年代切换样本
+1. `Russian-76mm`
+- `1941-06` -> `Russian-76mm M1939 USV (pre-HEAT).txt`
+- `1943-07` -> `Russian-76mm M1942 ZiS3.txt`
+2. `American-M4A3 Sherman`
+- `1943-06` -> `American-M4A3 Sherman (early).txt`
+- `1944-08` -> `American-M4A3 Sherman (late).txt`
+3. `German-Panzer III Ausf F`
+- `1941-06` -> `German-Panzer III Ausf F (early).txt`
+4. 上述结果表明：scenario 年月已经足以决定至少一部分“同名不同型”单位的具体落点。
+
+三十四、这对完整复刻路线的含义
+1. scenario 部署层已经不只是“能读出单位名称”，而是开始恢复“该名称在该年月下对应哪一个真实定义文件”。
+2. 这一步是完整复刻的关键前置，因为它直接决定：
+- 武器型号
+- 装甲参数
+- 乘员配置
+- 弹药组合
+- 图像资源
+3. 如果没有这层年月感知，后续做出的 Windows 运行时即使能载入地图和部署，也会在大量历史任务里生成错误型号，属于结构性偏差，不可接受。
+
+三十五、下一阶段最该攻坚的方向已经收紧
+1. 继续把 availability-aware 解析从“单位报告 / 部署分类”推进到“地图部署实例级显式落点”，即让每个 deployment 在报告中可直接显示最终 definition filename。
+2. 然后继续深拆：
+- `flag4`
+- `flag9`
+- metadata 尾部 21 字节
+3. 再继续追 `world.dat` 原型表之后的实例记录：
+- prototype index
+- instance position
+- collision / blocking linkage
+
+[2026-04-02 13:49 | 追加验证结论 5]
+
+三十六、报告层必须显式暴露 deployment 到 definition 的最终落点
+1. `availability-aware` resolver 现在已经不只是内部判定逻辑，而是需要在报告层直接暴露为 `deployment -> resolved definition filename`。
+2. 这一步不是展示优化，而是逆向验证面补全：
+- 可以直接肉眼确认 scenario 年月是否真的影响了单位定义落点
+- 可以把 alias 命中与未命中从“内部状态”变成“可追踪证据”
+- 可以把后续 unresolved 条目转化为 resolver 的补完清单
+3. 因此桌面复刻运行时未来也应保留这条可观测链路，而不是只保留最终生成出来的单位对象。
+
+三十七、地图摘要层新增 definition coverage 之后出现了新的高价值证据
+1. `FirefightWorkbench_Report.txt` 现已能在地图摘要层直接显示：
+- `definition coverage`
+- `definition sample`
+2. 这使得每张地图不再只是“有多少部署”，而是能继续判断：
+- 有多少部署已经被精确映射到真实定义文件
+- 哪些地图还存在结构性 unresolved
+3. 当前已浮现的高价值 unresolved 样本包括：
+- `German-Panzer IV Ausf D`
+- `American-M4A2 Sherman (mid)`
+- `American-M4A2 Sherman (late)`
+4. 这些 unresolved 已从零散异常上升为下一阶段 resolver 补强的直接入口。
+
+三十八、详细场景报告现在可以直接验证年代切换是否真的落到了实例级
+1. 在 `ASTM_Report.txt` 中已经能直接看到：
+- `German-Panzer III Ausf F -> German-Panzer III Ausf F (early)`
+- `American-M4A3 Sherman -> American-M4A3 Sherman (late)`
+2. 这说明当前解析链路已经从“只知道别名”推进到“能在具体任务实例里恢复其真实定义文件”。
+3. 这对完整复刻的意义在于，后续装甲、武器、乘员、弹药和图片资源都可以沿着这条 definition 落点继续恢复，而不是停留在模糊类名层。
+
+三十九、当前阶段最值得继续深挖的三个突破口
+1. unresolved deployment 名称补完：
+- 扩展 alias 规则
+- 判断是否存在尚未纳入 catalog 的变体文件命名规律
+2. `scenarios.dat` deployment payload：
+- 继续给 `flag4`
+- `flag9`
+- metadata 尾部 21 字节命名
+3. `world.dat`：
+- 继续从 prototype table 之后拆出实例记录区
+- 追 prototype index / position / collision / blocking 之间的连接
+[2026-04-02 13:59 | 追加验证结论 6]
+
+四十、Firefight 原始定义文件不能假设是严格 XML
+1. 部分 stock 定义文件虽然逻辑有效，但在文本节点内存在未转义的 `&`，例如 `Image-Panzer IV Ausf D&E.png`。
+2. 这意味着 definition catalog 构建层必须具备宽容解析 fallback；否则会把“素材存在但 XML 不规范”的单位误判为 definition 缺失。
+3. 当前 Workbench 已加入 bare `&` -> `&amp;` 的保守修复重试。
+4. 验证结果：
+- `German-Panzer IV Ausf D` 已能按 `exact file path` 命中真实定义文件
+- `ASTM` 已从 `143/144 resolved` 提升到 `144/144 resolved`
+5. 因此后续完整复刻的运行时 XML / definition loader 也必须保留“严格解析 + 宽容回退”的双层策略。
+
+四十一、当前 unresolved 已经收缩成更明确的家族性问题
+1. 经过本轮 XML 容错补洞后，地图摘要层最明显的 unresolved 高优先只剩：
+- `American-M4A2 Sherman (mid)`
+- `American-M4A2 Sherman (late)`
+2. 这更像是 `M4A2 Sherman` 家族的 alias / nationality fallback 规则缺口，而不再是 catalog 漏文件。
+3. 因此下一阶段 resolver 攻坚应优先从“家族归并规则”切入，而不是再泛化地怀疑解析器全局不可用。
+
+[2026-04-02 15:38 | 追加验证结论 7]
+
+四十二、`American-M4A2 Sherman (mid/late)` 更合理的修复不是跨国别借壳，而是同国别 Sherman family fallback
+1. 资产层已确认不存在 American 版 `M4A2 Sherman (mid/late)` 定义文件。
+2. 但 American 阵营确实存在同阶段的：
+- `American-M4 Sherman (mid).txt`
+- `American-M4 Sherman (late).txt`
+3. 因此当前 Workbench 已采用更保守、也更高保真的定向规则：
+- `American-M4A2 Sherman (mid)` -> `American-M4 Sherman (mid)`
+- `American-M4A2 Sherman (late)` -> `American-M4 Sherman (late)`
+4. 这比把 American 部署直接落到 `French/Italian/Russian-M4A2 Sherman` 更可靠，因为它不会把 nationality、crew uniform、相关附属资源直接带偏。
+
+四十三、`AMST` 现在已经被拉到全解析
+1. `AMST_Report.txt` 当前已达到 `225/225 resolved`。
+2. `FirefightWorkbench_Report.txt` 里的 `AMST` 地图摘要也同步变为全解析。
+3. 这说明当前 definition resolver 已经不再卡在 `American-M4A2 Sherman (mid/late)` 这组部署名上。
+
+四十四、当前对 deployment payload 三个关键字段的最保守解释边界
+1. `flag9`
+- 当前最像“阵营槽位 / side bucket”
+- 在 `ASTM` 样本里稳定表现为 defender=`0` / attacker=`1`
+- 还不能在所有地图上直接正式命名
+2. `prefix32`
+- 当前最像“部署激活延迟 / 增援时间”
+- 数值分布高度像秒级时间
+- 但还需要更多非整百样本来排除 tick / frame 计数
+3. `flag4`
+- 当前最像“少量特殊单位的布尔控制位”
+- 明显不是主阵营字段
+- 暂时仍不能武断命名成 leader / reinforcement / elite
+
+四十五、当前最应该继续深挖的主线已经进一步收紧
+1. 给 `flag4`、`flag9`、metadata 尾部 21 字节做跨地图统计验证。
+2. 把 `world.dat` prototype table 之后的实例记录区正式拆成字段。
+3. 在此基础上，再把工作台从“静态报告器”推进到“可视化地图 / 对象浏览器”。
+[2026-04-02 14:16 | 追加验证结论 7]
+
+四十二、`M4A2 Sherman` 家族问题已确认属于 deployment family fallback，而不是漏文件
+1. `assets\Data\Vehicles` 中不存在 American 原生的：
+- `American-M4A2 Sherman (mid)`
+- `American-M4A2 Sherman (late)`
+2. 但存在同车族定义：
+- `French-M4A2 Sherman.txt`
+- `Italian-M4A2 Sherman.txt`
+- `Russian-M4A2 Sherman.txt`
+3. 这说明 `American-M4A2 Sherman (mid/late)` 更像是 scenario deployment 层对车族的调用名，而不是 assets 层真实文件名。
+4. 因此 resolver 现在新增了“去掉 deployment 国籍前缀后的 family fallback”查询链路。
+
+四十三、family fallback 的当前工作方式与边界
+1. 当完整部署名的 file-name / alias / fuzzy 都失败时，Workbench 会追加一轮：
+- 去掉最前面的国籍前缀
+- 再对车型本体做 alias / fuzzy 查询
+2. 对 `American-M4A2 Sherman (mid)` / `1943-01`：
+- 当前命中 `French-M4A2 Sherman.txt`
+- 原因是候选集中其 availability 在 `1942-12:1000`，高于 Russian 的 `1942-10:500`，Italian 在该日期尚未激活
+3. 对 `American-M4A2 Sherman (late)` / `1944-06`：
+- 当前也命中 `French-M4A2 Sherman.txt`
+- 原因是 French / Italian 都在 `1944-06:1000`，当前排序最终由文件路径顺序打破平局
+4. 这说明当前命中是“同车族代理定义”，不是“已证明 American crew / uniform 就应等于 French 定义”。
+
+四十四、完整复刻时必须把“车族定义”和“部署方国籍”拆开
+1. 当前 Workbench 为了恢复 deployment 到 chassis/weapon 数据，允许跨国籍 family fallback。
+2. 但未来真正桌面复刻运行时不能直接把 fallback 命中的 `Nationality` / `uniform` 当成最终真相。
+3. 更合理的方向应是：
+- 让 fallback definition 提供车体/装甲/武器/外形基础数据
+- 让 deployment 原始前缀或 scenario 阵营继续决定 crew 国籍、语音、制服、UI 阵营归属
+4. 因此 `M4A2 Sherman` 问题已经从“resolver 完全找不到”推进成“后续运行时对象模型需要拆 chassis 与 crew identity”。
+
+[2026-04-02 16:25 | 追加验证结论 8]
+
+四十六、跨地图 deployment payload 统计已经把 `flag9 / prefix32 / flag4` 从抽样观察推进到全局分布证据
+1. 当前 Workbench 已对 `28` 个 `scenario files`、`246` 个 `scenarios`、`5095` 个 `deployments` 做统一统计。
+2. `flag9`：
+2.1 全局分布为 `0x2040, 1x3052, 2x1, 6x1, 9x1`，主体极度集中在 `0/1`，但仍存在 3 个离群值。
+2.2 在 `246/246` 个同时含有 `flag9=0` 与 `flag9=1` 的场景里，部署记录顺序都表现为严格的 `0 -> 1`。
+2.3 同样在 `246/246` 个 mixed scenarios 里，第一条部署记录都是 `flag9=0`。
+2.4 `flag9=0` 的部署里 `delay>0` 为 `0/2040`；`flag9=1` 的部署里 `delay>0` 为 `257/3052`。
+3. 这使得 `flag9` 当前最稳妥的解释进一步收紧为：`scene side-slot 0/1`。在现有 stock maps 中它高度贴合 `defender=0 / attacker=1`，但因为还有 `2/6/9` 三个离群值，暂时仍不应直接把该字节正式硬命名成 `attacker/defender`。
+4. `prefix32`：
+4.1 非零仅 `257/5095`，总体是稀疏字段。
+4.2 非零 `min/median/max = 121 / 510 / 2100`。
+4.3 高频值包括 `481, 600, 900, 300, 480, 540`，说明它虽然像秒级延迟/增援激活时间，但不能再武断假设只会落在整 `300s` 波次上。
+4.4 因此当前更保守的理解是：`prefix32` 更像部署延迟、增援激活或脚本触发时间，不像 side/team 字段。
+5. `flag4`：
+5.1 非零仅 `166/5095`，是一个更稀疏的布尔型/控制型候选字段。
+5.2 这 `166` 条记录全部是 `Infantry`，当前没有在 `Vehicles` 或 `AT Guns` 里出现。
+5.3 `166/166` 的 `flag4>0` 同时落在 `flag9=1`；其中 `27/166` 还伴随 `prefix32>0`。
+5.4 因而 `flag4` 当前最像少量特殊步兵部署使用的控制位，不像主阵营字段，也不像通用 side 字段。
+6. 对完整复刻的运行时建模含义：
+6.1 需要把 `deployment side-slot / activation metadata` 与 `unit definition / chassis / weapon data` 拆开。
+6.2 还要继续把 `crew/faction identity` 从 fallback 命中的 vehicle definition 中剥离，避免把代理定义的 nationality 误当成最终阵营真相。
+7. 本轮新报告已经把以上统计固化到 `FirefightWorkbench_Report.txt` 的 `五、Deployment Payload 统计` 一节，可作为后续命名字段时的直接证据层。
+
+[2026-04-02 22:35 | 追加验证结论 9]
+
+四十七、当前桌面复刻工程已经从“文本报告器”推进到“桌面地图任务部署浏览器”
+1. 上一阶段真正稳定可复用的，不是完整战斗运行时，而是 `FirefightRebuild.Workbench` 里已经存在的结构化解析能力：
+- 地图目录定位
+- `world.dat` 头部尺寸读取
+- `scenarios.dat` 任务与部署解析
+- deployment -> definition 落点解析
+- 定义文件原文读取
+2. 这些能力已经足够支撑一个“地图 + 任务 + 部署点 + 定义详情”的桌面 EXE，而不足以直接支撑“完整战斗复刻”。
+3. 因此当前最正确的工程推进是先把它们固化成桌面浏览器，作为战斗运行时之前的可视化验证层。
+
+四十八、`FirefightDesktop` 当前首版定位必须明确
+1. `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe` 当前是：
+- 桌面逆向可视化浏览器
+- 地图任务部署检查器
+- 运行时建模前的证据化工具
+2. 它当前还不是：
+- 完整战斗主循环
+- 完整 AI 决策系统
+- 联机版
+- 存档版
+- 最终可玩 Firefight 复刻版
+3. 任何后续 AI 都不能把“已经有桌面 EXE”误读成“完整复刻已经完成”。
+
+四十九、当前桌面浏览器的正确数据来源优先级
+1. 地图底图优先用 `*-map.jpg`，因为它稳定、轻量，足够作为首版任务部署可视化载体。
+2. 若 `map.jpg` 缺失，再回退 `*-tileXY.jpg` 拼接。
+3. 部署点必须按 `world.dat` 读取到的世界尺寸做坐标映射，而不是按图片像素拍脑袋落点。
+4. 任务标题、描述、部署列表必须来自 `scenarios.dat` 当前可证实的结构化解析，而不是从总报告文本反解析。
+5. 单位详情必须回到真实 definition 文件与原始文本，避免 UI 层再次制造二手解释误差。
+
+五十、当前桌面浏览器对完整复刻的工程意义
+1. 它把“反编译结论是否真能落地到桌面程序”从口头层推进到了可执行层。
+2. 它让后续 AI 可以直接在桌面侧观察：
+- 地图尺寸是否正确
+- 任务切换是否正确
+- 部署点坐标是否合理
+- definition 落点是否正确
+3. 这意味着后续战斗运行时可以优先建立“对象模型 + 状态更新 + 命令系统”，而不必再把大量时间耗在地图/任务/部署加载的重复验证上。
+
+五十一、当前阶段最值得继续攻坚的主线已经更新
+1. 协议主线：
+- 继续拆 `world.dat` instance 区
+- 继续命名 `flag4 / flag9 / metadata tail`
+2. 桌面主线：
+- 在 `FirefightDesktop` 中加入 contours、local objects、scenario filters、definition jump、对象统计等浏览能力
+3. 运行时主线：
+- 在当前浏览器验证过的加载链路之上，开始抽象真正的运行时对象模型
+- 明确区分 `unit definition / vehicle chassis / weapon data / crew identity / scenario-side metadata`
+4. 红线：
+- 不得把当前浏览器阶段误包装成完整游戏复刻完成
+- 不得在未继续拆协议前，凭猜测硬写大量战斗公式
+
+[2026-04-02 22:49 | 追加验证结论 10]
+
+五十二、桌面浏览器现在开始承担 `world.dat` 原型层的可视化证据职责
+1. 仅有任务与部署可视化还不够，因为后续 `world.dat` instance 区拆解必须不断回到“地图对象原型表”做对照。
+2. 因此当前桌面浏览器已经进一步接入：
+- `WorldPrototypeTable`
+- `WorldTokenSample`
+- `WorldTailTokenSample`
+3. 这意味着后续 AI 在桌面侧已经可以同时观察三层证据：
+- 地图底图
+- scenario 部署
+- world prototype 样本
+
+五十三、下一步最有价值的连接点
+1. 继续把 `world prototype` 与 `instance region` 的索引、坐标、阻挡/碰撞关系串起来。
+2. 一旦这条链路稳定，桌面浏览器就可以继续上升为“地图对象实例浏览器”，这是走向真正运行时复刻前非常关键的一层。
+
+[2026-04-02 23:04 | 追加验证结论 11]
+
+五十四、`flag9` 离群值目前已经从“统计层异常”推进到“具名样本异常”
+1. 当前 anomaly 报告已经正式确认，全局只有 3 个 `flag9` 离群值：
+- `FLAU/Tutorial/American-M4A3 Sherman` -> `flag9=2`
+- `H112/Tutorial/American-M4A3 Sherman` -> `flag9=9`
+- `TRCH/Tutorial/American-M10 Wolverine` -> `flag9=6`
+2. 三者都有共同特征：
+- 都在 `Tutorial`
+- 都是车辆
+- 都是 `delay=0`
+- 都是 `(0,0)` 坐标
+- `extraValue=0`
+3. 这强烈暗示它们不是普通开局部署点，更像教程脚本占位实体、隐藏教学对象，或特殊 UI/事件驱动对象。
+4. 因此当前更不应该把 `flag9` 直接硬命名成最终阵营语义，而应保留“`g0/g1` 为主、tutorial 车辆存在特殊离群编码”的理解。
+
+五十五、桌面浏览器当前对 `flag9`/`flag4` 逆向的直接价值
+1. `Show Contours` 让地图坡度与部署位置的人工对照更直接。
+2. `Deployment Filter` 让 `g0/g1/Other` 三类部署可以分开观察，不再被全部点位混在一起。
+3. 这意味着后续 AI 可以更高效地核对：
+- `flag4` 步兵样本是否集中在某些战术地形
+- `Other` 离群样本是否只存在教程或特殊模式
+
+[2026-04-02 23:46 | 追加验证结论 12]
+
+五十六、桌面查看器已经把 anomaly 证据从“可过滤观察”推进到“摘要 + 样本 + 导出”
+1. 当前 map summary 会直接聚合当前地图的 `g0/g1/other/flag4/delayed` 计数，并列出 map 级 `Other / Flag4 / Delayed` 样本。
+2. 当前 scenario summary 会直接显示当前 filter 的 visible count，并列出：
+- `Filtered`
+- `Other`
+- `Flag4`
+- `Delayed`
+四组样本。
+3. 这意味着后续 AI 在桌面侧就能直接定位 tutorial 异常车辆、`flag4` 步兵样本、延迟部署样本，而不必先回到 CLI 报告手翻文本。
+4. 因而当前 `FirefightDesktop` 已经开始承担“场景级 anomaly 取证前端”的职责，而不是只有静态部署点浏览。
+
+五十七、场景异常导出已经成为后续 `world/runtime` 对照的固定落盘接口
+1. 当前新增按钮：`Export Scenario Snapshot`。
+2. 导出目录固定为：`交战反编译成果\\ScenarioExports`。
+3. 导出文本至少包含：
+- 生成时间
+- assets root
+- map/scenario 路径
+- 当前 filter 可见数
+- `Filtered / Other / Flag4 / Delayed` 样本
+4. 这使后续拆 `world.dat instance region` 时，可以把桌面手测结果稳定落盘，而不必手抄窗口内容。
+
+五十八、本轮新增依然属于逆向证据层，不是完整可玩 Firefight
+1. 本轮没有新增战斗主循环、AI、弹道、伤害、路径、联网、存档。
+2. 本轮新增的是：
+- GUI anomaly 摘要
+- GUI anomaly 样本
+- scenario anomaly 文本导出
+3. 因此当前最有价值的继续方向仍然是：
+- tutorial 异常车辆是否属于脚本/占位对象
+- `world prototype -> instance region -> runtime object`
+- `flag4` 步兵样本与具体 runtime 行为映射
+[2026-04-03 08:45 | Game-understanding addendum | world.dat object layout linkage]
+
+New stable understanding:
+1. `scenarios.dat` tutorial special records (`0x1401 + x + y` route points) are no longer isolated anomalies.
+2. `world.dat` contains a stable object-instance table immediately after the parsed world prototype table.
+3. Current verified object-instance layout hypothesis:
+   - `Int32 instanceCount`
+   - followed by `instanceCount` records of 8 bytes
+   - each record decodes cleanly as `UInt16 headerWord`, `UInt16 x`, `UInt16 y`, `UInt16 prototypeIndex`
+4. In sampled maps (`H112`, `FLAU`, `TRCH`, `ASTM`) the instance `headerWord` is consistently `0xCD00`.
+5. The parsed `prototypeIndex` resolves into the previously parsed world prototype table in almost all cases.
+6. This makes it possible to attach every tutorial route point to its nearest spatial world object and reason about route intent against actual scene layout.
+
+Design implication:
+1. The reverse-engineering target is not only "parse files" but "recover spatial relationships".
+2. Tutorial routes likely depend on existing map objects, terrain anchors, or landmark clusters.
+3. Future engine recreation should preserve this data relationship:
+   - world prototypes
+   - world object instances
+   - scenario deployments
+   - tutorial/script route points
+4. Route-to-object linkage is therefore part of the engine/data model understanding, not just a debug overlay.
+
+[2026-04-03 09:10 | Delivery threshold clarification]
+Important project rule:
+The reconstruction target is not considered complete at the level of parsers, viewers, reports, or partial desktop tooling.
+Completion requires all of the following together:
+1. a complete playable desktop `.exe`
+2. good engineering quality and optimization
+3. reverse-engineered coverage of the game's runtime behavior, not only asset/file formats
+Therefore every current result remains a supporting layer toward that final executable reconstruction target.
+
+[2026-04-03 09:12 | Tooling-layer understanding update]
+The Desktop viewer is now more than a scenario/deployment viewer.
+It can simultaneously visualize:
+1. map imagery
+2. tutorial routes
+3. parsed world object instances
+4. selected-route nearest-object links
+This makes the viewer an active reverse-engineering instrument for runtime semantics, not just a report surface.
+
+[2026-04-03 10:10 | World instance model update | status taxonomy]
+Current refined understanding:
+1. `world.dat` instance data should no longer be described as a single yes/no success case.
+2. The current reconstruction evidence supports at least four practical map families:
+   - `canonical-0xCD00`
+   - `canonical+unresolved-tail`
+   - `variant-headers`
+   - `sentinel-coordinates`
+3. There is also a separate failure family:
+   - `rejected-probe`
+   This means the current assumption "prototype table end is immediately followed by an `Int32 declaredCount` for 8-byte instance records" is wrong on those maps, or at least incomplete.
+
+What is currently strongest:
+1. Stable maps such as `TRCH` still strongly support this record boundary:
+   - `Int32 declaredCount`
+   - then `count` records of 8 bytes
+   - interpreted as `UInt16 headerWord`, `UInt16 x`, `UInt16 y`, `UInt16 prototypeIndex`
+2. Mixed-header maps such as `BPAL` still preserve coherent coordinates and believable prototype hotspots.
+3. This means the leading `headerWord` is increasingly likely to carry real per-instance semantics, not just a constant map-wide marker.
+
+Working interpretation of the current map families:
+1. `canonical-0xCD00`
+   - likely the cleanest form of the instance family
+   - best reference maps: `TRCH`, `TKYO`, `NSVL`
+2. `variant-headers`
+   - still plausibly the same 8-byte family
+   - `headerWord` changes by instance and correlates with object clusters
+   - best reference map: `BPAL`
+3. `sentinel-coordinates`
+   - records are still mostly spatially meaningful, but a minority of entries expose `0` / `65532` / slight overflow values
+   - possibilities:
+     - reserved markers inside the same table
+     - disabled or hidden instances
+     - alternate sub-record semantics
+     - a second family partially sharing the same 8-byte footprint
+4. `rejected-probe`
+   - maps such as `JLRD`, `SELI`, and `UA1T` do not expose a plausible count word right after the current prototype-table boundary
+   - this strongly suggests at least one extra block, alternate count encoding, or alternate instance-table family
+
+Engine-recreation implication:
+1. The future desktop runtime cannot hard-code a single universal `world instance` decoder.
+2. The engine recreation will likely need:
+   - a canonical instance decoder
+   - one or more variant-header decoders
+   - explicit handling for sentinel/reserved entries
+   - a map-family detection step or a more faithful upstream block parser
+3. Therefore, reverse-engineering the world layer now means recovering a dispatch model, not merely naming four fields.
+
+Current best next-step lens:
+1. Treat `TRCH` as the canonical baseline.
+2. Treat `BPAL` as the mixed-header baseline.
+3. Treat `CAMB` or `NSPN` as the sentinel-coordinate baseline.
+4. Treat `JLRD` as the rejected-probe baseline.
+5. The goal of the next round is to determine whether `headerWord` is:
+   - flags
+   - layer/class bits
+   - orientation/state bits
+   - or evidence of multiple interleaved record families.
+
+[2026-04-04 14:46 | World instance model update | supplemental prototype tails]
+Current refined understanding:
+1. Some maps do not stop at a single main `world prototype table`.
+2. After the final valid 8-byte world-instance record, there can be a second, map-local supplemental prototype segment.
+3. This supplemental segment is now strongly evidenced as:
+   - `UInt16 nameLength`
+   - ASCII prototype name
+   - 3 trailing flag bytes
+4. The instance table start does not move when this segment exists.
+   The correct recovery model is:
+   - keep the original instance-table boundary
+   - re-use the same parsed instance records
+   - extend prototype resolution with the post-instance supplemental name segment
+
+Verified stable examples:
+1. `TRCH`
+   - supplemental tail: `0x17CF3C-0x17D113`
+   - appended entries: `27`
+   - after recovery: `declared=1657, parsed=1657, unresolved=0, status=canonical-0xCD00`
+2. `BPAL`
+   - supplemental tail: `0x293FC2-0x2941ED`
+   - appended entries: `33`
+   - after recovery: still `variant-headers`, but unresolved drops to `0`
+3. `NSPN`
+   - supplemental tail: `0x3F2671-0x3F28C5`
+   - appended entries: `36`
+   - after recovery: still `sentinel-coordinates`, but unresolved drops to `0`
+4. `JLRD`
+   - supplemental tail: `0x80A240-0x80A4A3`
+   - appended entries: `35`
+   - after recovery: remains `variant-headers + uint16+prelude(0x0022)`, unresolved drops to `0`
+5. Full anomaly regression additionally confirms the same pattern on:
+   - `JWVG`
+   - `WSAW`
+
+Model implications:
+1. `canonical+unresolved-tail` should no longer be treated as a permanent family label.
+   In at least some maps it is only a temporary symptom of an incomplete prototype set.
+2. `TRCH` is no longer the best baseline for unresolved-tail behavior.
+   It is now a clean `canonical-0xCD00` baseline again after supplemental-tail recovery.
+3. `BPAL` remains the best mixed-header baseline, but now with a confirmed appended prototype-name segment.
+4. `JLRD` is no longer best described as a rejected-probe baseline.
+   It is now a stable `variant-headers + supplemental-tail + split-count` reference map.
+5. `SELI` and `UA1T` remain unresolved for a different reason.
+   Their current failure is not explained by supplemental prototype tails alone.
+
+Regression truth after this recovery:
+1. The full anomaly report still remains:
+   - `canonical = 23`
+   - `variant = 10`
+   - `sentinel = 10`
+   - `rejected = 2`
+2. Therefore the new parser behavior is currently best understood as:
+   - improved prototype resolution
+   - not broad acceptance drift
+   - not a false cleanup of rejected families
+
+[2026-04-04 20:31 | World instance diagnostics update | rejected-family report taxonomy]
+Current refined understanding:
+1. The nearby-candidate layer now supports a stable report taxonomy for the still-unresolved rejected families.
+2. This is currently a diagnostic/report-layer taxonomy, not yet a final parser dispatch model.
+
+Stable rejected-side patterns:
+1. `prototype-gap-family`
+   - main parse is rejected by `invalid-count`
+   - nearby `int32` candidates remain spatially clean
+   - but those nearby candidates still fail on `unresolved-prototypes`
+   - current best reference map: `SELI`
+2. `sentinel-adjacent-family`
+   - main parse is rejected by `invalid-count`
+   - nearby accepted candidates already look spatially coherent
+   - but they remain sentinel-heavy rather than collapsing into a clean variant family
+   - current best reference map: `UA1T`
+3. `garbage-offset-family`
+   - small nearby offsets often around `+9 / +17 / +25 / +33 / +41 / +49`
+   - rapidly collapse into invalid-coordinate-heavy false starts
+   - strong reference maps: `BPAL`, `BGHL`, `FRCK`, `NKCP`, `SAGC`
+
+Practical implication:
+1. `SELI` should not currently be framed as a simple offset miss.
+2. `UA1T` should not currently be framed as “one clean variant candidate away” from acceptance.
+3. The next parser-facing step should focus on:
+   - prototype-closure / supplemental-resolution gaps for `SELI`
+   - alternate-count or sentinel-adjacent family structure for `UA1T`
+   rather than widening one generic nearby-offset rule.
+
+[2026-04-04 20:29 | World anomaly understanding update | report-layer family diagnosis]
+Current refined understanding:
+1. The remaining hard maps should not all be described as one generic `rejected-probe` bucket anymore.
+2. The current report layer now supports a more precise diagnosis split:
+   - `prototype-gap-family`
+   - `sentinel-adjacent-family`
+   - `garbage-offset-signal` on nearby candidates
+3. This is intentionally a report-layer distinction first, not a parser-acceptance expansion.
+
+Stable diagnosis rules now supported by the evidence:
+1. `prototype-gap-family`
+   - main probe still fails early (`invalid-count`)
+   - but one or more nearby `int32` candidates keep `invalid=0`
+   - those nearby candidates fail specifically on `unresolved-prototypes`
+   - current best example: `SELI`
+2. `sentinel-adjacent-family`
+   - main probe still fails early (`invalid-count`)
+   - but a nearby candidate is already parse-accepted as `sentinel-coordinates`
+   - coordinate validity is still strong enough to show the structure is spatially coherent
+   - current best example: `UA1T`
+3. `garbage-offset-signal`
+   - usually small positive nearby offsets such as `+9 / +17 / +25 / +33 / +41 / +49`
+   - these produce `invalid-coordinates` explosions
+   - header distribution becomes obviously fragmented / low-trust
+   - this is now a strong negative signal rather than a candidate rescue path
+
+Implication for next parser work:
+1. `SELI` should now be treated as a prototype-resolution problem first, not mainly an offset problem.
+2. `UA1T` should now be treated as a sentinel-adjacent / alternate-family problem first, not a clean-variant rescue that merely needs a small offset shift.
+3. Future parser changes should target these families separately, instead of widening one universal offset rule.

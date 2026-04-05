@@ -1,0 +1,1462 @@
+[2026-04-05 11:25 | 次日第5次更新 | GitHub 认证恢复核对与仓库上下文确认]
+类型：GitHub 认证检查 + Git/remote 状态核实 + handoff 纠偏
+主要改动：
+1. 在用户重新执行 `gh auth login` 后，重新验证 `gh` 当前登录状态。
+2. 核对本地根仓库当前是否已经具备 GitHub 仓库上下文。
+3. 将“已登录 GitHub”与“仓库已连 GitHub”这两件事明确拆开记录，避免后续误判。
+
+影响文件：
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `gh auth status`（沙箱外）确认：
+- 已登录账号：`31009882-boop`
+- `Active account: true`
+- scopes：`gist`, `read:org`, `repo`, `workflow`
+2. 本地 Git 状态确认：
+- 当前分支：`main`
+- `No commits yet on main`
+- `git remote -v` 为空
+3. `gh repo view` / `gh pr status` 均返回：
+- `no git remotes found`
+
+关键结论：
+1. GitHub 认证已经恢复，可用于后续远端操作。
+2. 但当前项目还没有 commit，也没有远端仓库绑定，所以现在并不存在 PR / CI 入口。
+3. 后续如果要真正使用 `gh` 工作流，顺序应当是：
+- 首次 commit
+- 创建或绑定远端 GitHub repo
+- push
+- 再检查 PR / CI
+
+备注：
+1. 本轮没有改代码，也没有改运行时产物。
+2. 本轮临时备份目录：`交战反编译成果\\备份\\20260405_112500_gh_status_handoff_tmp`
+
+[2026-04-05 11:05 | 次日第4次更新 | 04:10 环境审计结果回填、文档镜像刷新与启动复核]
+类型：handoff 文档补完 + 环境事实纠偏 + 启动验证闭环
+主要改动：
+1. 回填 `2026-04-05 04:10` 那轮已完成但未完整写入文档的环境/工程结果，明确：
+- 根 Git 仓库为 `D:\桌面\交战反编译项目`
+- 新增根目录 `.gitignore` / `.gitattributes`
+- 新增 `Tools\\Use-LocalSkillEnv.ps1/.cmd`
+- 新增 `交战反编译成果\\.gitignore`
+- 新增 `交战反编译成果\\Tools\\SmokeFirefightDesktop.ps1/.cmd`
+- `MapPreviewControl.cs` 本轮收口的是 route segment 命中、segment tooltip、tooltip delay 调整
+2. 重新核对实际环境，纠正一项重要交接偏差：
+- `gh` 便携版已安装并可执行
+- Python 依赖 `openpyxl / pandas / networkx` 已可导入
+- `npm.cmd / npx.cmd` 仍是 PowerShell 推荐绕行
+- `js_repl` 当前并未写入 `C:\\Users\\31009\\.codex\\config.toml`，不能记成已启用
+3. 再次运行项目内 smoke 脚本，复核根目录 `FirefightDesktop.exe` 仍能拉起主窗口。
+4. 已刷新稳定快照与 `文档备份`，避免继续只停留在 `20260405_041046_env_setup_system_audit_tmp`。
+
+影响文件：
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `gh --version`：成功，返回 `gh version 2.89.0 (2026-03-26)`。
+2. `gh auth status`：返回未登录，需要后续手动 `gh auth login`。
+3. `python -c "import openpyxl,pandas,networkx"`：成功，输出 `PY_DEPS_OK`。
+4. `cmd /c "交战反编译成果\\Tools\\SmokeFirefightDesktop.cmd"`：成功，输出：
+- `STARTED_OK`
+- `EXE=D:\桌面\交战反编译项目\交战反编译成果\FirefightDesktop.exe`
+- `PID=41660`
+- `MAINWINDOW=331628`
+- `TITLE=Firefight Desktop Verification`
+
+关键结论：
+1. `2026-04-05 04:10` 轮的环境补齐确实已落地，但 `js_repl` 并未实际持久化，必须按“未启用”继续处理。
+2. 当前最稳的本地工具入口是：
+- `D:\桌面\交战反编译项目\\Tools\\Use-LocalSkillEnv.cmd`
+- `D:\桌面\交战反编译项目\\交战反编译成果\\Tools\\SmokeFirefightDesktop.cmd`
+- `D:\桌面\交战反编译项目\\交战反编译成果\\Tools\\GitHubCli\\bin\\gh.exe`
+3. 当前根目录 `FirefightDesktop.exe` 已在 `2026-04-05 11:05` 再次通过启动级 smoke。
+
+备注：
+1. 本轮 3 个只读 subagent 均因 `429 Too Many Requests` 失败，结论由主线程本地补齐。
+2. `gh` 仍需后续人工 `gh auth login` 才能真正接 `gh-address-comments / gh-fix-ci / yeet`。
+3. 本轮稳定快照已生成：`交战反编译成果\\备份\\20260405_111500_env_audit_handoff_verified_stage`。
+4. `交战反编译成果\\文档备份` 已刷新。
+5. 已清理临时备份：
+- `20260405_031500_system_audit_envfix_tmp`
+- `20260405_040113_env_git_full_audit_tmp`
+- `20260405_041046_env_setup_system_audit_tmp`
+- `20260405_051500_docsync_tmp`
+
+[2026-04-05 02:33 | 次日第2次更新 | GB18030 启动崩溃修复与启动 exe 强制验证规则]
+类型：运行时编码初始化修复 + Desktop 启动链修复 + 长期验证规则固化
+主要改动：
+1. `FirefightRebuild.Workbench\\FirefightAssetInspector.cs`：
+- `FileEncoding` 从字段直接初始化改成 static ctor
+- 在 static ctor 中显式执行 `Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)`
+- `GB18030` 获取方式改为 `Encoding.GetEncoding(54936)`
+- 避免共享 `FileEncoding` 在未注册 code page provider 的入口中直接崩溃
+2. `FirefightDesktop\\Program.cs`：
+- 在 `Main(...)` 最开始显式执行 `Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)`
+- 让 Desktop 入口在构造 `FirefightDesktopForm` 前就具备所需代码页
+3. `FirefightDesktop` 发布链：
+- 重新 build / publish single-file
+- 重新刷新根目录 `FirefightDesktop.exe`
+4. `长期记忆工作流.txt`：
+- 新增“每次更新后都要实际运行启动 exe 验证”的强制规则
+- 允许后续设计本地自动化脚本/插件，但不能替代最基本的启动 smoke
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightDesktop\\Program.cs`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightDesktop.exe`
+- `交战反编译成果\\长期记忆工作流.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on `FirefightDesktop`：成功。
+4. 已实际启动根目录 `交战反编译成果\\FirefightDesktop.exe` 做 smoke 验证：
+- 结果：`STARTED_OK`
+- 持续约 `8` 秒后主动结束测试进程
+- 未再出现用户报告的 `GB18030` 初始化异常
+
+关键结论：
+1. 用户这次报错的直接根因不是 XML 数据本身，而是 Desktop 入口未注册代码页提供程序，叠加共享 `FileEncoding` 在静态字段初始化阶段直接拿 `GB18030`。
+2. 这类问题属于“入口初始化顺序”缺陷，单改 Workbench Program 不足以修复 Desktop。
+3. 当前根目录 `FirefightDesktop.exe` 已通过启动级 smoke，不再复现该异常。
+
+备注：
+1. 本轮稳定快照已生成：`交战反编译成果\\备份\\20260405_023300_gb18030_runtime_fix_verified_stage`
+2. 本轮文档镜像已刷新：`交战反编译成果\\文档备份`
+3. 本轮临时备份目录已清理：`交战反编译成果\\备份\\20260405_022500_gb18030_runtime_fix_tmp`
+
+[2026-04-05 02:05 | 次日第1次更新 | Desktop world-object tooltip 纠偏与根目录启动 exe 落地]
+类型：Desktop 交互偏差修正 + GUI 状态提示增强 + 发布产物整理
+主要改动：
+1. `FirefightDesktop\\MapPreviewControl.cs`：
+- 修正 `OnMouseMove(...)` 的 tooltip 命中顺序
+- 现在顺序为：
+  - special route node
+  - world object
+  - deployment
+- world object tooltip 不再依赖 deployment 先命中，解决了“很多世界物件悬停无反应”的偏差
+2. `FirefightDesktop\\FirefightDesktopForm.cs`：
+- 在 `statusLabel` 中加入 suppressed raw marker 提示
+- 当当前筛选结果里存在被 special-route 规则隐藏的原点 marker 时，会追加：
+  - `raw-route markers=N suppressed`
+- 这让用户能直接理解“少画了点”是有意消除偏差，而不是渲染漏项
+3. `FirefightDesktop` 发布链：
+- 重新执行 single-file publish
+- 将最新 `FirefightDesktop.exe` 及其必需 sidecar 复制到成果根目录：
+  - `FirefightDesktop.exe`
+  - `D3DCompiler_47_cor3.dll`
+  - `PenImc_cor3.dll`
+  - `PresentationNative_cor3.dll`
+  - `vcruntime140_cor3.dll`
+  - `wpfgfx_cor3.dll`
+4. 本轮没有改 Workbench parser、没有改 `world.dat / scenarios.dat` 结构化结论，属于 Desktop 验证层和交付层优化
+
+影响文件：
+- `交战反编译成果\\FirefightDesktop\\MapPreviewControl.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightDesktop.exe`
+- `交战反编译成果\\D3DCompiler_47_cor3.dll`
+- `交战反编译成果\\PenImc_cor3.dll`
+- `交战反编译成果\\PresentationNative_cor3.dll`
+- `交战反编译成果\\vcruntime140_cor3.dll`
+- `交战反编译成果\\wpfgfx_cor3.dll`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on `FirefightDesktop`：成功。
+3. 已确认根目录最新启动入口：
+- `交战反编译成果\\FirefightDesktop.exe`
+- 时间戳：`2026-04-05 01:48:04`
+
+关键结论：
+1. 上一轮 special-route 原点纠偏后，当前 Desktop 剩余最明显的交互偏差是 world object tooltip 的命中顺序；这轮已修正。
+2. 当前成果根目录已有可直接双击的 Desktop 启动入口，但它仍然是“桌面验证/运行入口”，不是最终完整战斗 runtime。
+3. 对用户侧体验而言，本轮最直接的改进是：
+- 悬停 world object 更可信
+- 地图上少画原点 marker 的原因更透明
+- 不必再手动进入 publish 子目录找 exe
+
+备注：
+1. 本轮稳定快照已生成：`交战反编译成果\\备份\\20260405_020500_desktop_bias_audit_verified_stage`
+2. 本轮文档镜像已刷新：`交战反编译成果\\文档备份`
+3. 本轮临时备份目录已清理：`交战反编译成果\\备份\\20260405_014900_desktop_bias_audit_tmp`
+
+[2026-04-04 22:57 | 当日第21次更新 | tutorial special-route 原版基线对照与 Desktop 原点纠偏]
+类型：`scenarios.dat` tutorial special-route 复刻对照摘要落地 + Desktop 可视化偏差修正 + handoff 文档同步
+主要改动：
+1. `ScenarioSnapshotFormatter.cs`：
+- 在 `BuildScenarioSummary(...)` 中新增 `Original comparison baseline`
+- 新增 `BuildDeploymentReplicaComparisonNotes(...)`
+- 新增 `ShouldSuppressRawDeploymentMarker(...)`
+- 新增 special-route spatial digest 计算：
+  - route 起终点
+  - centroid
+  - bounds
+  - path length
+  - raw->route displacement
+  - world-link `min/avg/max` 距离
+- special-route sample 行不再只写 `pos=(0,0)`，而是显式改成 `pos=raw(0, 0)`
+2. `FirefightDesktopForm.cs`：
+- 选中 deployment 的详情页中新增 `Replica comparison notes`
+- special-route deployment 的 `Position` 现在显式标成 `raw (...)`
+- 部署列表位置列对 special-route 记录加上 `raw` 前缀，避免误读成正常坐标
+3. `MapPreviewControl.cs`：
+- 对满足“raw 坐标 near-zero + special route 起点远离原点”的 tutorial special-route deployment，停止绘制普通 deployment marker
+- 同时停止把这类错误原点 marker 纳入点击命中，改由 route node 作为主要选中入口
+4. `游戏理解.txt`：
+- 固化了“tutorial special-route 不应再按普通 deployment 坐标锚定”的新理解
+5. `长期记忆工作流.txt`：
+- 新增 special-route 复刻对照规则
+- 新增 single-file publish 验证绕行规则
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\FirefightDesktop\\MapPreviewControl.cs`
+- `交战反编译成果\\_tmp_TRCH_Tutorial_Other_ReplicaCompare_20260404.txt`
+- `交战反编译成果\\_tmp_H112_Tutorial_Other_ReplicaCompare_20260404.txt`
+- `交战反编译成果\\_tmp_FLAU_Tutorial_Other_ReplicaCompare_20260404.txt`
+- `交战反编译成果\\游戏理解.txt`
+- `交战反编译成果\\长期记忆工作流.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on `FirefightRebuild.Workbench`：成功。
+4. 使用 single-file `FirefightWorkbench.exe` 已成功重新导出：
+- `TRCH/Tutorial/Other`
+- `H112/Tutorial/Other`
+- `FLAU/Tutorial/Other`
+5. 三份对照报告均已验证出现：
+- `Original comparison baseline`
+- special-route `raw=(0,0)` vs route/world-link 对照
+- sample 行中的 `pos=raw(0, 0)`
+
+关键结论：
+1. `TRCH/H112/FLAU` tutorial special-route 记录当前已不应继续被桌面层当成普通 deployment 点复刻。
+2. 当前最可信的原版空间基线是：
+- route 点列
+- route bounds / path length
+- world-link 覆盖率与距离分布
+3. `Desktop` 原先把这类记录画在 `(0,0)` 的行为属于明显误导性复刻偏差，这轮已纠正。
+4. 这轮没有改 parser acceptance，也没有重新定义 world count model；属于“复刻对照层和展示层修正”，不是新的协议猜测。
+
+环境绕行补充：
+1. 这轮再次确认：
+- `dotnet run`
+- framework-dependent `bin\\Release\\net8.0\\FirefightWorkbench.exe`
+  都可能被 sandbox / 应用程序控制策略拦截。
+2. 当前更稳定的验证路径是：
+- 先 `dotnet publish` single-file
+- 再运行 `publish\\win-x64-single\\FirefightWorkbench.exe`
+
+备注：
+1. 本轮稳定快照已生成：`交战反编译成果\\备份\\20260404_225700_replica_compare_verified_stage`
+2. 本轮文档镜像已刷新：`交战反编译成果\\文档备份`
+3. 本轮临时备份目录已清理：`交战反编译成果\\备份\\20260404_213100_replica_compare_tmp`
+
+[2026-04-04 20:40 | 当日第20次更新 | rejected family diagnosis 报告层固化]
+类型：`world.dat` anomaly 解释层增强 + rejected family 结构化诊断 + handoff 可读性提升
+主要改动：
+1. `FirefightAssetInspector.cs`：
+- 在 `FormatWorldObservationLabel(...)` 中加入 `family=...`
+- 在 anomaly detail 与 map browse diagnostics 中加入 `world family diagnosis`
+- nearby candidates 现在追加 `signal=...`
+- 新增 report-layer family diagnosis 逻辑，当前可稳定区分：
+  - `prototype-gap-family`
+  - `sentinel-adjacent-family`
+  - `stable-canonical-family`
+  - `stable-variant-family`
+  - `stable-sentinel-family`
+  - `supplemental-tail-resolved-*`
+  - `garbage-offset-signal`
+2. 这轮没有扩大 parser acceptance，也没有新增 offset gate。
+3. diagnosis 现在已经能把最关键的剩余难点拆开：
+- `SELI => prototype-gap-family`
+- `UA1T => sentinel-adjacent-family`
+- `BPAL` / 其他 mixed-header 图上的小正偏移垃圾候选会打上 `garbage-offset-signal`
+4. `游戏理解.txt`：
+- 同步了 `prototype-gap-family / sentinel-adjacent-family / garbage-offset-signal` 三类新理解
+- 明确后续 parser 工作不应再把 `SELI/UA1T` 混成一种问题
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `交战反编译成果\\游戏理解.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. 全量 anomaly report 已刷新，计数保持不变：
+- `world instance anomalies = 23`
+- `canonical = 23`
+- `variant = 10`
+- `sentinel = 10`
+- `rejected = 2`
+4. diagnosis 验证：
+- `SELI` 标签和 detail 中都已出现 `family=prototype-gap-family`
+- `UA1T` 标签和 detail 中都已出现 `family=sentinel-adjacent-family`
+- `BPAL` 的 `delta +33/+41/+49` 已出现 `signal=garbage-offset-signal`
+
+关键结论：
+1. 剩余 rejected family 现在已经不是“看起来都差不多”的黑盒。
+2. 接下来继续推进 parser 时，至少要分两条线：
+- `SELI` 走 prototype-resolution / prototype-gap 线
+- `UA1T` 走 sentinel-adjacent / alternate-family 线
+3. 这轮最大的价值不是新增 acceptance，而是把下一轮的搜索空间缩小成更清晰的两个问题。
+
+备注：
+1. 本轮仍然只增强解释层，不把诊断标签误包装成最终格式真相。
+2. 本轮稳定快照计划路径：`交战反编译成果\\备份\\20260404_204000_family_diagnosis_verified_stage`
+
+[2026-04-04 20:36 | 当日第20次更新 | rejected-family diagnosis 报告层固化]
+类型：`world.dat` rejected-family 诊断显式化 + anomaly/browse/detail 输出补强 + handoff 文档同步
+主要改动：
+1. `FirefightAssetInspector.cs`：
+- 在 `FormatWorldObservationLabel(...)` 中追加 `family=...`
+- 在 `FormatWorldObservationDetail(...)` 中追加：
+  - `family diagnosis`
+  - `family evidence`
+- 在 `BuildMapBrowseWorldDiagnosticsSummary(...)` 中追加：
+  - `World family diagnosis`
+  - `World nearby family evidence`
+- nearby candidate 行从原来的模糊 `signal=` 改成显式 `family=...`
+2. 新增/收口的诊断归纳：
+- `BuildWorldObservationFamilyCode(...)`
+- `BuildWorldObservationFamilyDiagnosis(...)`
+- `BuildWorldNearbyCandidateFamilySummary(...)`
+- `BuildWorldNearbyCandidateFamilyLabel(...)`
+3. 这轮没有扩大 parser acceptance，也没有新增 offset gate；改动严格停留在报告层诊断归纳
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `交战反编译成果\\_tmp_SELI_map_report_20260404_familydiag.txt`
+- `交战反编译成果\\_tmp_UA1T_map_report_20260404_familydiag.txt`
+- `交战反编译成果\\_tmp_BPAL_map_report_20260404_familydiag.txt`
+- `交战反编译成果\\游戏理解.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. 代表地图验证：
+- `SELI` 现在明确显示：
+  - `family=prototype-gap-family`
+  - `family evidence: prototype-gap-candidatex3 / sentinel-adjacentx2`
+- `UA1T` 现在明确显示：
+  - `family=sentinel-adjacent-family`
+  - `family evidence: accepted-nearbyx4 / sentinel-adjacentx1`
+- `BPAL` 现在明确显示：
+  - `family=supplemental-tail-resolved-variant`
+  - `family evidence: garbage-offsetx3 / clean-variantx1 / sentinel-adjacentx1`
+4. 全量 anomaly 回归计数仍保持：
+- `canonical = 23`
+- `variant = 10`
+- `sentinel = 10`
+- `rejected = 2`
+
+关键结论：
+1. `SELI` 与 `UA1T` 现在终于在工具层被稳定地区分成两类不同难点，不再都只是 generic rejected。
+2. 当前最有价值的 parser 下一步仍然不是扩大 generic offset rule，而是：
+- `SELI`：prototype-gap / prototype-closure 问题
+- `UA1T`：sentinel-adjacent / alternate-count family 问题
+3. accepted family 旁边的垃圾起点也已被显式标记，后续继续做 parser 时更容易排除假信号。
+
+备注：
+1. 本轮稳定快照计划路径：`交战反编译成果\\备份\\20260404_203700_family_diagnosis_verified_stage`
+2. 本轮文档镜像仍刷新到：`交战反编译成果\\文档备份`
+
+[2026-04-04 14:58 | 当日第19次更新 | world.dat supplemental prototype tail recovery 落地]
+类型：`world.dat` parser 接线收口 + supplemental prototype tail 恢复 + 全量 anomaly 回归验证 + handoff 文档同步
+主要改动：
+1. `FirefightAssetInspector.cs`：
+- `ResolveWorldData(...)` 正式切到 `BinaryParsers.ResolveWorldPrototypeAndProbe(...)`
+- `WorldPrototypeTable` 的 supplemental tail 现在贯通到主观测链，而不是只停留在未调用的辅助方法
+- `FormatWorldObservationDetail(...)` / `BuildMapBrowseWorldDiagnosticsSummary(...)` / 标签摘要现在会显式输出 `prototype supplemental tail`
+- 旧的 `TryExtendWorldPrototypeTableFromInstanceTail(...)` 已同步到新 `WorldPrototypeTable` 签名，避免半途补丁导致的构造器失配
+- 修正了一处结构性括号问题：`EnumerateMapDirectoryLocations()` 缺少方法闭合，导致 `ResolveWorldData(...)` 一度悬挂在错误作用域；现已收口
+2. supplemental tail 恢复结果：
+- `TRCH`：恢复 `0x17CF3C-0x17D113(27)`，从 `canonical+unresolved-tail` 回到 `canonical-0xCD00`
+- `BPAL`：恢复 `0x293FC2-0x2941ED(33)`，保留 `variant-headers`，unresolved 降到 `0`
+- `NSPN`：恢复 `0x3F2671-0x3F28C5(36)`，保留 `sentinel-coordinates`，unresolved 降到 `0`
+- `JLRD`：恢复 `0x80A240-0x80A4A3(35)`，保留 `variant-headers + uint16+prelude(0x0022)`，unresolved 降到 `0`
+- 全量 anomaly 报告还额外确认：`JWVG`、`WSAW` 也存在 supplemental prototype tail
+3. 执行环境绕行：
+- 沙箱里的 `dotnet run` 多次出现 `windows sandbox: setup refresh failed`
+- 直接在工程 Desktop 路径执行 `dotnet run` 又会撞到应用控制策略
+- 已确认可复用 workaround：
+  `将 Release 产物镜像到 C:\\Users\\31009\\.codex\\memories\\ff_workbench_exec_20260404，再直接执行 FirefightWorkbench.exe --assets <assetsRoot>`
+4. 文档与项目理解同步：
+- `长期记忆工作流.txt`：补充“长轮次上下文压缩与持续推进”规则
+- `游戏理解.txt`：新增 supplemental prototype tail 的稳定结论与回归真相
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `交战反编译成果\\_tmp_TRCH_map_report_20260404_tailprobe.txt`
+- `交战反编译成果\\_tmp_BPAL_map_report_20260404_tailprobe.txt`
+- `交战反编译成果\\_tmp_NSPN_map_report_20260404_tailprobe.txt`
+- `交战反编译成果\\_tmp_JLRD_map_report_20260404_tailprobe.txt`
+- `交战反编译成果\\_tmp_TRCH_report_20260404_tailprobe.txt`
+- `交战反编译成果\\长期记忆工作流.txt`
+- `交战反编译成果\\游戏理解.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. 代表地图验证：
+- `TRCH` anomaly report：`world instance anomalies = 0`
+- `TRCH` normal map report：`world 原型补尾 = 0x17CF3C-0x17D113(27)`，`unresolved=0`
+- `BPAL`：`prototypeTail=0x293FC2-0x2941ED(33)`，`variant-headers` 保持稳定
+- `NSPN`：`prototypeTail=0x3F2671-0x3F28C5(36)`，`sentinel-coordinates` 保持稳定
+- `JLRD`：`prototypeTail=0x80A240-0x80A4A3(35)`，`variant-headers + uint16+prelude(0x0022)` 保持稳定
+4. 全量 anomaly 回归：
+- `world instance anomalies = 23`
+- `world canonical 0xCD00 maps = 23`
+- `world variant-header maps = 10`
+- `world sentinel-coordinate maps = 10`
+- `world rejected probes = 2`
+5. 关键拒绝族未被误洗白：
+- `SELI` 仍是 `rejected: invalid-count 843513858`
+- `UA1T` 仍是 `rejected: invalid-count 1112932356`
+
+关键结论：
+1. supplemental prototype tail 现在已经从“字节级猜想”变成“代码可恢复、报告可验证、全量计数不漂移”的稳定事实。
+2. `canonical+unresolved-tail` 不是必须长期保留的地图家族；至少一部分地图只是因为 prototype set 不完整才暂时落到这类。
+3. 目前最值钱的下一步不是继续扩 offset 规则，而是把 `SELI/UA1T` 与 `prototype-gap / alternate-count / family classification` 拆得更清楚。
+
+备注：
+1. 本轮仍然是在逆向工具链与桌面验证层推进，不是最终 runtime 完成。
+2. 本轮稳定快照计划路径：`交战反编译成果\\备份\\20260404_145800_prototype_tail_recovered_verified_stage`
+3. 文档镜像计划刷新到：`交战反编译成果\\文档备份`
+
+[2026-04-03 23:15 | 当日第18次更新 | world.dat 诊断签名 + probe 透传 + Desktop 摘要补强]
+类型：`world.dat` 逆向诊断增强 + Workbench/Desktop 共享摘要链补强 + handoff 规则固化
+主要改动：
+1. `FirefightAssetInspector.cs`：
+- 在 world map report 与 anomaly detail 中正式加入 `world format signature = UnknownHeader/PayloadMarker`
+- 标准 map report 不再只看 accepted table，而是先保留 `WorldInstanceProbe`，因此 rejected probe 也会显示 `parse rejection / header distribution / coordinate anomalies`
+- `MapBrowseData` 新增 `WorldHeader` 与 `WorldInstanceProbe`，为 Desktop/formatter 透出真实世界实例诊断状态
+2. `ScenarioSnapshotFormatter.cs`：
+- 新增统一 `World diagnostics` 段
+- map summary 与 scenario summary 现在都会写出 `signature / parse status / header distribution / coordinate bounds / coordinate anomalies`
+- 共享摘要链因此不再只暴露 accepted `WorldInstanceTable`
+3. `长期记忆工作流.txt`：
+- 补充现实约束：若会话工具不支持显式 subagent，也必须按 subagent 职能拆成并行分析轨，并在 `计划任务备份.txt` 说明主线程代执行情况
+4. 重新生成并验证报告：
+- `FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `_tmp_TRCH_world_anomaly_20260403_1736.txt`
+- `_tmp_BPAL_world_anomaly_20260403_1736.txt`
+- `_tmp_CAMB_world_anomaly_20260403_1736.txt`
+- `_tmp_JLRD_world_anomaly_20260403_1736.txt`
+- `_tmp_TRCH_scenario_snapshot_worlddiag_20260403_2310.txt`
+影响文件：
+- `交战反编译成果\\长期记忆工作流.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- `交战反编译成果\\FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `交战反编译成果\\_tmp_TRCH_world_anomaly_20260403_1736.txt`
+- `交战反编译成果\\_tmp_BPAL_world_anomaly_20260403_1736.txt`
+- `交战反编译成果\\_tmp_CAMB_world_anomaly_20260403_1736.txt`
+- `交战反编译成果\\_tmp_JLRD_world_anomaly_20260403_1736.txt`
+- `交战反编译成果\\_tmp_TRCH_scenario_snapshot_worlddiag_20260403_2310.txt`
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `TRCH/BPAL/CAMB/JLRD` 四份 anomaly 报告已验证新增字段确实有信息增量，不是空模板：
+- `TRCH = 1002/256192 / canonical+unresolved-tail`
+- `BPAL = 1005/461887 / variant-headers`
+- `CAMB = 1005/540469 / sentinel-coordinates`
+- `JLRD = 1001/0 / rejected: invalid-count 2229469`
+4. `TRCH` 场景快照已验证共享摘要链写出了 `World format signature / World parse status / World header distribution / World coordinate bounds / World coordinate anomalies`。
+关键结论：
+1. `world format signature` 已经成为区分 canonical / variant / sentinel / rejected 家族的稳定低成本诊断维度。
+2. Desktop 共用摘要链现在终于能暴露 rejected/variant/sentinel world-instance 状态，而不是只看 accepted table。
+3. `nearby start candidates` 对 `CAMB/JLRD/SELI/UA1T` 这类地图提供了真实候选偏移证据，下一轮可以继续归纳是否存在额外 block、错位 count 或 interleaved family。
+备注：
+1. 当前成果仍是逆向工具链与桌面验证层，不是完整 runtime。
+2. 下一轮最值钱的点不是继续堆 UI，而是把 rejected-family 的候选起点进一步抽象成格式规则。
+3. 本轮收口后已刷新：
+- 稳定快照 `交战反编译成果\\备份\\20260403_232200_worlddiag_signature_verified_stage`
+- 文档镜像 `交战反编译成果\\文档备份`
+- 并已清理两份本轮临时备份目录
+
+[2026-04-03 02:07 | 当日第17次更新 | route overlay 第二轮自检优化]
+类型：代码质量优化 + UI 信息强化 + 桌面端发布刷新
+主要改动：
+1. `MapPreviewControl.cs`：
+- 选中语义改为按 `RecordOffset` 追踪
+- special route 查找改为字典索引
+- 密集 route 改为只标首尾或选中全标，降低视觉噪声
+2. `FirefightDesktopForm.cs`：
+- 新增 `Show Tutorial Routes`
+- 部署列表新增 `Special` 列
+- scenario 下拉新增 route 数量
+- definition 详情页追加 route 点明细
+- status bar 明确 `shown/hidden` route 数量
+3. Desktop 发布版重新刷新。
+影响文件：
+- `交战反编译成果\\FirefightDesktop\\MapPreviewControl.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `dotnet publish` on `FirefightDesktop`：成功；有 `NU1900` 网络告警但不影响结果。
+关键结论：
+1. 当前 Desktop 的 tutorial route 层已经具备继续做对象级空间分析的可用性。
+2. 本轮优化重点不是新功能堆砌，而是把上一轮新功能从“演示态”提升到“长期可维护和可分析态”。
+[2026-04-03 01:52 | 当日第16次更新 | Desktop route overlay 与 0x1401 全图扫描]
+类型：桌面地图交互增强 + tutorial route 取证扩展 + 发布版刷新
+主要改动：
+1. `MapPreviewControl.cs` 现在会直接绘制 `ScenarioSpecialRecordCandidate`：
+- route 折线
+- route 节点
+- 节点序号
+- hover tooltip
+- 点击节点反选所属 deployment
+2. `FirefightDesktopForm.cs` 现在会按当前 filter 计算并传入可见 special routes。
+3. deployment 详情页增加 tutorial special route 样本信息。
+4. 新增机器生成报告 `TutorialSpecialRouteScan.txt`，确认 `0x1401` 分布于 `14` 个地图的 tutorial 场景，合计 `85` 个有效点。
+5. Desktop/Workbench 发布版重新刷新。
+影响文件：
+- `交战反编译成果\\FirefightDesktop\\MapPreviewControl.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\TutorialSpecialRouteScan.txt`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. 两个项目 `dotnet publish ... win-x64-single`：成功；仅出现 `NU1900` 网络漏洞源访问警告，不影响发布成功。
+4. `H112_Tutorial_Other_Snapshot_Test.txt` 再次验证通过，special route 仍为 `0x1401/9pts`。
+关键结论：
+1. `0x1401` 已经从“局部 anomaly 线索”升级为“教程系统通用结构”证据。
+2. 当前 Desktop 已能直接服务后续空间对照工作，而不再只是文本导出器。
+备注：
+1. 当前成果仍是逆向验证与桌面浏览层，不是完整战斗 runtime。
+2. 下一步最值钱的是把 route 点与 `world.dat instance region` 叠在一起做对象级对照。
+[2026-04-03 01:14 | 当日第15次更新 | tutorial 特殊记录与 0x1401 路线点解析]
+类型：scenario.dat 异构记录逆向 + Workbench/桌面端摘要增强 + build/publish 刷新
+主要改动：
+1. 对 `FLAU/H112/TRCH` 的 `Tutorial + Other` 离群车辆重新取证，确认三张图索引都为 `08`。
+2. 直接读取原始 `scenarios.dat` 字节，发现三条离群车辆都不是普通 `(x,y,angle,extra)` 记录，而是 `00 00 00 + (01 14 + x + y)*N` 的 special route 结构。
+3. 在 `FirefightAssetInspector.cs` 中新增：
+- `PayloadHex / PayloadBytes`
+- `PostDeploymentTailBytes / PostDeploymentTailHex`
+- `SpecialRecordCandidates`
+- `0x1401 + x + y` 路点解析
+4. 在 `ScenarioSnapshotFormatter.cs` 中新增：
+- map/scenario 级 `Special-record candidates`
+- `Post-deployment tail bytes`
+- `special=0x1401/Npts` 样本标记
+- route 摘要段
+5. build 过程中顺手修掉一个旧的 `suffix` 局部变量重名问题。
+6. 两个项目重新 `build/publish` 完成，发布版 EXE 已刷新。
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightRebuild.Workbench\\ScenarioSnapshotFormatter.cs`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+- `交战反编译成果\\FLAU_Tutorial_Other_Snapshot_Test.txt`
+- `交战反编译成果\\H112_Tutorial_Other_Snapshot_Test.txt`
+- `交战反编译成果\\TRCH_Tutorial_Other_Snapshot_Test.txt`
+- `交战反编译成果\\FirefightWorkbench_Anomalies_Check.txt`
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. 两个项目 `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single`：成功。
+4. `FLAU/H112/TRCH` 三张教程图的 `Other` 快照均成功识别 special route。
+5. 默认导出路径验证成功，产物位于 `交战反编译成果\\ScenarioExports\\FLAU_08_194409_Tutorial_Other_ScenarioSnapshot.txt`。
+关键结论：
+1. 教程离群车辆目前最稳妥的解释是“tutorial special record candidate”，不是普通战斗部署位。
+2. `flag9=2/6/9` 说明 `GroupByte` 不能在全局上直接硬命名成 attacker/defender。
+3. `scenarios.dat` 至少在 tutorial 场景里混入了异构 route/script 数据。
+备注：
+1. 当前成果仍是逆向/验证工具链，不是完整可玩的 Firefight 复刻。
+2. 新增 route 点解析只说明 tutorial 里存在特殊记录，不等于已经完全解释其 runtime 语义。
+[2026-04-02 10:35 | 当日第1次更新 | Firefight 安卓包逆向复刻启动]
+类型：逆向分析 + 文档建档 + 工程启动
+主要改动：
+1. 确认原件为 `SDL2 + 自研 C++` 游戏，不是 Unity/Unreal。
+2. 确认 `classes.dex` 主要承担 `com.windowsgames.firefight` 的 SDL Activity 与计费桥接。
+3. 从 `libmain.so` 中提取到 `SceneChooserDesktop`、`SceneCustomUnits`、`PackageData`、`Game`、`RouteFinder`、`InternetConnection` 等关键系统名。
+4. 确认 `assets/Data` 为高度数据驱动结构，包含步兵、车辆、AT 炮、武器、国家装备表。
+5. 确认地图目录包含 `map.jpg`、`contours.png`、瓦片图、`world.dat`、`scenarios.dat`。
+6. 建立 `游戏理解.txt` 第一版作为后续复刻硬约束。
+7. 补写本项目计划、更新、对话文档，并启动 Windows 工作台工程。
+影响文件：
+- `交战反编译成果/游戏理解.txt`
+- `交战反编译成果/计划任务备份.txt`
+- `交战反编译成果/过往更新记录.txt`
+- `交战反编译成果/过往对话记录.txt`
+- `交战反编译成果/FirefightRebuild.Workbench/*`
+验证结果：
+- 已通过本地目录和样本文件验证关键判断。
+- 待执行：工作台工程构建与运行验证。
+备注：
+- 当前属于“高保真复刻工程启动阶段”，不是最终可玩完成态。
+
+[2026-04-02 11:22 | 当日第2次更新 | Workbench 验证、增强与发布]
+类型：工程增强 + 验证收口 + 可执行发布
+主要改动：
+1. 复用现有 `FirefightRebuild.Workbench` 工程，未重复创建第二个桌面壳工程。
+2. 强化 `FirefightAssetInspector.cs`：
+- 修正地图瓦片坐标轴判定，地图 tile 网格与 `world.dat` 头部尺寸现在一致
+- 装备表解析优先根据真实定义文件判型，修复 `equipment_chinese_WW2.txt` 等无标准注释分段的统计错误
+- 增加 `scenarios.dat` 中任务标题/简介的可读字符串抽取
+- 增加 `--map` 定点地图报告
+- 增加 `--unit` 定点单位报告
+3. 成功执行：
+- `dotnet build`
+- 直接运行 `FirefightWorkbench.dll`
+- `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true`
+4. 生成并验证产物：
+- `FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`
+- `FirefightWorkbench_Report.txt`
+- `ZCRD_Report.txt`
+- `German_Panther_Ausf_G_Report.txt`
+5. 建立新的稳定备份快照：
+- `备份\20260402_112200_工作台验证通过`
+影响文件：
+- `交战反编译成果/FirefightRebuild.Workbench/Program.cs`
+- `交战反编译成果/FirefightRebuild.Workbench/FirefightAssetInspector.cs`
+- `交战反编译成果/FirefightWorkbench_Report.txt`
+- `交战反编译成果/ZCRD_Report.txt`
+- `交战反编译成果/German_Panther_Ausf_G_Report.txt`
+- `交战反编译成果/计划任务备份.txt`
+- `交战反编译成果/过往更新记录.txt`
+- `交战反编译成果/过往对话记录.txt`
+- `交战反编译成果/游戏理解.txt`
+验证结果：
+1. `dotnet build`：成功，0 错误 0 警告。
+2. 默认总报告运行成功。
+3. `--map ZCRD` 运行成功，已提出 8 条任务样本。
+4. `--unit "German-Panther Ausf G"` 运行成功，已输出完整单位定义。
+5. `dotnet publish` 成功，仅出现 NuGet 漏洞数据抓取失败警告 `NU1900`，不影响本地发布产物生成。
+备注：
+1. 当前已交付“可运行逆向工作台 EXE”，尚未交付“最终完整可玩复刻版 Firefight”。
+2. 下一阶段优先项仍是 `world.dat` / `scenarios.dat` 深度协议拆解。
+
+[2026-04-02 12:21 | 当日第3次更新 | 多任务部署解析打通]
+类型：逆向深化 + 工具增强 + 可执行再发布
+主要改动：
+1. 强化 `FirefightRebuild.Workbench` 的 scenario 解析逻辑：
+- 不再只做标题/简介字符串抽取
+- 增加任务起点扫描
+- 增加每任务 61 字节元数据读取
+- 增加连续部署记录解析
+- 增加部署坐标、朝向、附加浮点字段读取
+2. 增加单位名规范化匹配，提升 scenario 记录与真实定义文件的对接率。
+3. 已成功在 `ZCRD` 上解析出 9 个任务，并输出每任务部署清单。
+4. 已成功在 `ASTM` 上解析出 8 个任务，并输出每任务部署清单。
+5. 增加 `world.dat` 可打印词元样本入口，已在 `YSXC` 自定义地图上抽出 `Bollard` / `Car` 等对象名。
+6. 重新执行：
+- `dotnet build`
+- `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true`
+7. 更新产物：
+- `ZCRD_Report.txt`
+- `ASTM_Report.txt`
+- `YSXC_Report.txt`
+- `FirefightWorkbench_Report.txt`
+- 单文件 `FirefightWorkbench.exe`
+影响文件：
+- `交战反编译成果/FirefightRebuild.Workbench/FirefightAssetInspector.cs`
+- `交战反编译成果/FirefightWorkbench_Report.txt`
+- `交战反编译成果/ZCRD_Report.txt`
+- `交战反编译成果/ASTM_Report.txt`
+- `交战反编译成果/YSXC_Report.txt`
+- `交战反编译成果/计划任务备份.txt`
+- `交战反编译成果/过往更新记录.txt`
+- `交战反编译成果/过往对话记录.txt`
+- `交战反编译成果/游戏理解.txt`
+验证结果：
+1. `dotnet build`：成功，0 错误 0 警告。
+2. `--map ZCRD`：成功，9 个任务已被结构化解析。
+3. `--map ASTM`：成功，8 个任务已被结构化解析。
+4. `--map YSXC`：成功，已提取 world 词元样本和附加素材目录。
+5. `dotnet publish`：成功，仅有 `NU1900` 网络漏洞索引警告，不影响发布。
+备注：
+1. 这次最大的推进不是 UI，而是“任务部署层已经开始脱离纯字符串猜测，进入可复用结构化解析”。
+2. 下一阶段最关键的是给 scenario 元数据与 deployment payload 命名，并继续深拆 `world.dat`。
+
+[2026-04-02 12:51 | 当日第4次更新 | world 原型表与部署前缀结构化]
+类型：逆向深化 + 工作台增强 + 报告刷新 + 发布验证
+主要改动：
+1. 先做 fresh verification：
+- 重新运行 `ASTM` / `ZCRD`
+- 证实此前报告里的个别 `[Unknown]` 属于历史陈旧输出
+- 当前 `TryFindDefinitionPath()` 已能正确匹配 `Russian-76mm`、`German-Panzer III Ausf F`、`American-M4A3 Sherman`
+2. 升级 `FirefightRebuild.Workbench\\FirefightAssetInspector.cs`：
+- 将任务元数据输出改为正式字段展示
+- 增加 `MetadataTailHex`
+- 增加 `BuildDeploymentPrefixBreakdown()`
+- 将 deployment prefix 解析为 `DelayGuess / FlagByte / ScaleGuess / GroupByte`
+- 新增 `BinaryParsers.TryExtractWorldPrototypeTable()`
+- 新增 `WorldPrototypeTable` / `WorldPrototypeEntry`
+- 增加地图私有目录素材命中统计
+3. 新解析结果：
+- `ASTM-world.dat`：抓到 `count=49` 原型表
+- `ZCRD-world.dat`：抓到 `count=31` 原型表
+- `YSXC-world.dat`：抓到 `count=108` 原型表
+4. `YSXC` 交叉验证结果：
+- `Objects 37/37`
+- `Buildings 0/15`
+- `Trees 0/11`
+- `Barriers 0/1`
+   说明当前已抓到的是 world 某一段对象原型表，但不是全部类别。
+5. 发布与验证：
+- `dotnet build` 成功
+- `dotnet publish` 成功
+- 单文件 `FirefightWorkbench.exe` 重新发布
+- 直接运行发布版 EXE 成功生成 `YSXC_PublishedExe_Check.txt`
+
+影响文件：
+- `交战反编译成果/FirefightRebuild.Workbench/FirefightAssetInspector.cs`
+- `交战反编译成果/FirefightWorkbench_Report.txt`
+- `交战反编译成果/ASTM_Report.txt`
+- `交战反编译成果/ZCRD_Report.txt`
+- `交战反编译成果/YSXC_Report.txt`
+- `交战反编译成果/YSXC_PublishedExe_Check.txt`
+- `交战反编译成果/计划任务备份.txt`
+- `交战反编译成果/过往更新记录.txt`
+- `交战反编译成果/过往对话记录.txt`
+- `交战反编译成果/游戏理解.txt`
+- `交战反编译成果/备份/20260402_124651_scenario_world深化`
+- `交战反编译成果/备份/20260402_125413_verified_world_prototype_stage`
+- `交战反编译成果/备份/20260402_130000_final_verified_stage`
+
+验证结果：
+1. `dotnet build`：成功，0 错误 0 警告。
+2. `--map ZCRD`：成功，新增 `world 原型表` 与 `部署前缀摘要`。
+3. `--map ASTM`：成功，新增 `world 原型表` 与更强的元数据字段展示。
+4. `--map YSXC`：成功，已显示 `count=108` 原型表并完成本地素材命中统计。
+5. 发布版 `FirefightWorkbench.exe`：成功运行。
+6. `dotnet publish` 出现 `NU1900` 漏洞数据索引拉取警告，原因是无法访问 `https://api.nuget.org/v3/index.json`，但不影响本地发布产物。
+
+当前仍未解决：
+1. `delayGuess` 的单位仍未正式确认。
+2. `flag4` / `slot9` 仍未正式命名。
+3. 元数据尾部 21 字节仍未正式命名。
+4. `world.dat` 的实例坐标、原型索引、碰撞边界记录还未正式拆出。
+
+[2026-04-02 13:05 | 当日第6次更新 | world尾部词元合并与任务头口径收紧]
+类型：逆向深化 + 工作台增强 + 报告刷新 + 发布更新
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 中将 `world.dat` 尾部命名词元并入地图私有素材匹配逻辑。
+2. 保留 `world 原型表` 的同时，新增 `world 尾部词元补充` 输出，避免只命中第一段原型表。
+3. 新增 `metadata inferred` 与 `prefix note` 输出，明确：
+- `sideA/sideB` 当前更像 defender / attacker
+- `metadata[40]` 当前更像 `deploymentCountPlusOne`
+- `prefix32/flag4/flag9` 仍是原始字节命名，不是最终语义命名
+4. 重新生成 `ASTM_Report.txt`、`ZCRD_Report.txt`、`YSXC_Report.txt`、`FirefightWorkbench_Report.txt`。
+5. 重新发布单文件：`FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`。
+影响文件：
+- `交战反编译成果\FirefightRebuild.Workbench\FirefightAssetInspector.cs`
+- `交战反编译成果\FirefightWorkbench_Report.txt`
+- `交战反编译成果\ASTM_Report.txt`
+- `交战反编译成果\ZCRD_Report.txt`
+- `交战反编译成果\YSXC_Report.txt`
+- `交战反编译成果\FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`
+- `交战反编译成果\计划任务备份.txt`
+- `交战反编译成果\过往更新记录.txt`
+- `交战反编译成果\过往对话记录.txt`
+- `交战反编译成果\游戏理解.txt`
+验证结果：
+1. `dotnet build` 成功。
+2. `dotnet publish` 成功；仅有 `NU1900` 网络漏洞索引警告。
+3. `YSXC_Report.txt` 已确认 `world 素材匹配：Barriers 1/1 / Buildings 15/15 / Objects 37/37 / Trees 11/11`。
+4. `ASTM_Report.txt` / `ZCRD_Report.txt` 已确认出现 `metadata inferred`、`prefix note`、`deploymentCountPlusOne`。
+备注：
+1. 当前工作台对 `world.dat` 的理解已从“单段原型表”推进到“原型表 + 尾部命名段”的组合模型。
+2. `delay/team` 仍在部分旧输出文案中残留，后续应整体替换为更中性的 `prefix32/flag9`。
+[2026-04-02 13:27 | 当日第6次更新 | availability 年代解析与发布刷新]
+类型：逆向深化 + 定义索引重构 + 验证发布 + 交接回填
+主要改动：
+1. 重构 `FirefightRebuild.Workbench\\FirefightAssetInspector.cs` 的单位定义解析链路，不再把短别名直接绑定到单文件，而是建立“定义目录总表 + 别名候选池 + availability 时间序列评分”。
+2. 解析并利用 XML `<availability><data month/year/number>`，让 scenario 和 `--unit --month --year` 能按任务年月选择更合理的装备型号。
+3. 补强别名来源：
+- 文件名
+- 去括号变体文件名
+- `long_name`
+- `short_name`
+- 国籍前缀 + `long_name`
+- 国籍前缀 + `short_name`
+4. 新增 `--month` / `--year` CLI 参数，并刷新 Workbench 发布版单文件 EXE。
+5. 重新生成并验证：
+- `FirefightWorkbench_Report.txt`
+- `ZCRD_Report.txt`
+- `ASTM_Report.txt`
+- `Russian_76mm_Report.txt`
+- `Russian_76mm_1941_Report.txt`
+- `M4A3_Sherman_Report.txt`
+- `M4A3_Sherman_1943_Report.txt`
+- `Panzer_III_F_Report.txt`
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\Program.cs`
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+- `交战反编译成果\\FirefightWorkbench_Report.txt`
+- `交战反编译成果\\ZCRD_Report.txt`
+- `交战反编译成果\\ASTM_Report.txt`
+- `交战反编译成果\\Russian_76mm_Report.txt`
+- `交战反编译成果\\Russian_76mm_1941_Report.txt`
+- `交战反编译成果\\M4A3_Sherman_Report.txt`
+- `交战反编译成果\\M4A3_Sherman_1943_Report.txt`
+- `交战反编译成果\\Panzer_III_F_Report.txt`
+- `交战反编译成果\\游戏理解.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release`：成功，0 error 0 warning。
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true`：成功；仅有 `NU1900`，原因是无法访问 `https://api.nuget.org/v3/index.json`，不影响本地产物。
+3. `Russian-76mm`：
+- `1941-06` 命中 `Russian-76mm M1939 USV (pre-HEAT).txt`
+- `1943-07` 命中 `Russian-76mm M1942 ZiS3.txt`
+4. `American-M4A3 Sherman`：
+- `1943-06` 命中 `American-M4A3 Sherman (early).txt`
+- `1944-08` 命中 `American-M4A3 Sherman (late).txt`
+5. `German-Panzer III Ausf F`：
+- `1941-06` 命中 `German-Panzer III Ausf F (early).txt`
+6. 发布版 `FirefightWorkbench.exe` 已重新执行并成功刷新 `ZCRD_Report.txt`、`ASTM_Report.txt`、`FirefightWorkbench_Report.txt`。
+
+备注：
+1. 这次推进解决的是“同一短别名跨年代误指到错误型号”的关键问题，属于从场景文本层走向真实单位建模的实质性进展。
+2. 地图报告当前仍输出部署名与类别，不直接把每个部署实例的最终文件路径写进列表；如后续需要继续做实例级校验，可再增加“deployment -> resolved definition filename”显式列。
+3. 本轮尝试组织的外部 subagent 因 `401 Unauthorized / API key disabled` 失败，已关闭，不影响本地结论。
+4. 本轮最终验证快照：
+- `交战反编译成果\备份\20260402_132820_availability_alias_verified_stage`
+[2026-04-02 13:49 | 当日第7次更新 | deployment definition 可见性补强]
+类型：报告层增强 + 构建发布验证 + 交接续写 + 并行分流
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 中为 scenario 详细报告新增：
+- `definition coverage`
+- `definition sample`
+- `deployment -> resolved definition filename`
+2. 在地图摘要中新增聚合后的：
+- `definition coverage`
+- `definition sample`
+3. 去除部署行里已冗余的 `model=` 内联提示，避免与新的显式 definition 输出重复。
+4. 重新构建并刷新：
+- `FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`
+- `交战反编译成果\ASTM_Report.txt`
+- `交战反编译成果\FirefightWorkbench_Report.txt`
+5. 启动三个并行 subagent 只读分析分支：
+- unresolved alias 补完
+- `world.dat` 实例区字段边界
+- `flag4` / `flag9` / `prefix32` 模式
+
+影响文件：
+- `交战反编译成果\FirefightRebuild.Workbench\FirefightAssetInspector.cs`
+- `交战反编译成果\FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`
+- `交战反编译成果\ASTM_Report.txt`
+- `交战反编译成果\FirefightWorkbench_Report.txt`
+- `交战反编译成果\游戏理解.txt`
+- `交战反编译成果\计划任务备份.txt`
+- `交战反编译成果\过往更新记录.txt`
+- `交战反编译成果\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release`：成功，0 error 0 warning。
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\win-x64-single`：成功。
+3. `ASTM_Report.txt` 已确认出现实例级 definition 落点，例如：
+- `German-Panzer III Ausf F -> German-Panzer III Ausf F (early)`
+- `American-M4A3 Sherman -> American-M4A3 Sherman (late)`
+4. `FirefightWorkbench_Report.txt` 已确认出现地图级：
+- `definition coverage`
+- `definition sample`
+5. 当前报告已把 unresolved 暴露成后续可追的清单，例如：
+- `German-Panzer IV Ausf D`
+- `American-M4A2 Sherman (mid)`
+- `American-M4A2 Sherman (late)`
+
+备注：
+1. 这次推进把“内部 resolver 已经算对”推进成了“报告层能直接看到算对的证据”，属于逆向验证面的明显增强。
+2. 当前最值钱的新工作入口已经从泛泛的“继续逆向”收紧为三条：
+- unresolved definition alias 补完
+- `flag4` / `flag9` / metadata tail 命名
+- `world.dat` 实例区拆解
+3. 本轮修改前备份：
+- `交战反编译成果\备份\20260402_133532_deployment_resolution_visibility_stage`
+4. 本轮预定最终验证快照：
+- `交战反编译成果\备份\20260402_135012_deployment_resolution_visible_verified_stage`
+[2026-04-02 13:59 | 当日第8次更新 | XML 容错与 Panzer IV D 修复]
+类型：definition catalog 补洞 + 发布验证 + 交接续写
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 的 `XmlSummaries` 中加入 XML 容错回退：
+- 先正常解析
+- 失败后对 bare `&` 做保守转义再重试
+2. 修复了 `German-Panzer IV Ausf D.txt` 因 `Image-Panzer IV Ausf D&E.png` 这类未转义文本导致的 catalog 漏项。
+3. 重新构建、发布并用发布版 EXE 刷新：
+- `Panzer_IV_D_probe.txt`
+- `ASTM_Report.txt`
+- `FirefightWorkbench_Report.txt`
+
+验证结果：
+1. `dotnet build -c Release`：成功，0 error 0 warning。
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\win-x64-single`：成功。
+3. `Panzer_IV_D_probe.txt` 已确认：
+- `German-Panzer IV Ausf D` 命中真实定义文件
+- `match source: exact file path`
+4. `ASTM_Report.txt` 已从 `143/144 resolved` 提升到 `144/144 resolved`。
+5. `FirefightWorkbench_Report.txt` 已确认本轮新剩余 unresolved 聚焦到：
+- `American-M4A2 Sherman (mid)`
+- `American-M4A2 Sherman (late)`
+
+备注：
+1. 这说明部分所谓“definition 缺失”其实不是资产不存在，而是原始 stock XML 不规范导致 catalog 建模漏项。
+2. 因此后续完整桌面复刻在 definition loader 层必须保留宽容解析策略。
+3. 本轮追加修改前备份：
+- `交战反编译成果\备份\20260402_135620_xml_sanitizer_stage`
+4. 本轮最终验证快照：
+- `交战反编译成果\备份\20260402_140005_deployment_resolution_xml_verified_stage`
+
+[2026-04-02 15:38 | 当日第9次更新 | targeted M4A2 family fallback 与报告校正]
+类型：resolver 定向补洞 + 报告刷新 + subagent 结果吸收
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 中把 family fallback 收紧为定向规则：
+- 仅识别 `American-M4A2 Sherman (...)`
+- 重写到 `American-M4 Sherman (...)`
+- 保留 `targeted family fallback (...)` 的 match source
+2. 不采用 `French/Italian/Russian-M4A2 Sherman` 作为 American 部署的默认借壳，避免把 nationality / crew 带偏。
+3. 重新构建、发布，并在 EXE 被系统应用控制策略拦截后改用 `dotnet FirefightWorkbench.dll` 刷新：
+- `American_M4A2_Sherman_mid_Report.txt`
+- `American_M4A2_Sherman_late_Report.txt`
+- `AMST_Report.txt`
+- `FirefightWorkbench_Report.txt`
+4. 吸收并固化 subagent 对 `flag9 / prefix32 / flag4` 的当前最可信解释边界。
+
+影响文件：
+- `交战反编译成果\FirefightRebuild.Workbench\FirefightAssetInspector.cs`
+- `交战反编译成果\American_M4A2_Sherman_mid_Report.txt`
+- `交战反编译成果\American_M4A2_Sherman_late_Report.txt`
+- `交战反编译成果\AMST_Report.txt`
+- `交战反编译成果\FirefightWorkbench_Report.txt`
+- `交战反编译成果\游戏理解.txt`
+- `交战反编译成果\计划任务备份.txt`
+- `交战反编译成果\过往更新记录.txt`
+- `交战反编译成果\过往对话记录.txt`
+
+验证结果：
+1. `dotnet build -c Release`：成功，0 error 0 warning。
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\win-x64-single`：成功。
+3. `American_M4A2_Sherman_mid_Report.txt` 已确认：
+- `American-M4A2 Sherman (mid)` -> `American-M4 Sherman (mid)`
+4. `American_M4A2_Sherman_late_Report.txt` 已确认：
+- `American-M4A2 Sherman (late)` -> `American-M4 Sherman (late)`
+5. `AMST_Report.txt` 已提升为 `225/225 resolved`。
+6. `FirefightWorkbench_Report.txt` 已确认 `AMST` 摘要同样为全解析。
+
+备注：
+1. 本轮中途收到一条与主线源码不一致的 subagent 回传，曾把 `M4A2` 指到 `French-M4A2 Sherman`；主线已通过重新刷新当前 DLL 报告完成校正。
+2. 发布版 EXE 产物已刷新，但在本机上直接执行会被应用控制策略阻止；本轮实际验证路径是 `dotnet FirefightWorkbench.dll`。
+3. 当前对 deployment payload 的保守结论已收紧为：
+- `flag9` 最像 side bucket
+- `prefix32` 最像部署延迟
+- `flag4` 最像特殊单位布尔位
+4. 本轮修改前备份：
+- `交战反编译成果\备份\20260402_141230_m4a2_family_fallback_stage`
+5. 本轮最终验证快照：
+- `交战反编译成果\备份\20260402_154100_targeted_family_fallback_verified_stage`
+[2026-04-02 14:16 | 当日第9次更新 | M4A2 family fallback 打通]
+类型：resolver 补强 + 发布验证 + 文档回填
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 的 `ResolveDefinition()` 中新增 `family fallback`：
+- 完整部署名命中失败后
+- 取 `deployment 去掉国籍前缀后的车型本体`
+- 再做 exact/fuzzy alias 查询
+2. 重新构建并发布 `FirefightWorkbench.exe`。
+3. 新增并刷新验证报告：
+- `American_M4A2_Sherman_mid_Report.txt`
+- `American_M4A2_Sherman_late_Report.txt`
+- `AMST_Report.txt`
+- `FirefightWorkbench_Report.txt`
+
+验证结果：
+1. `dotnet build -c Release`：成功，0 error 0 warning。
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\win-x64-single`：成功。
+3. `American_M4A2_Sherman_mid_Report.txt` 已确认：
+- `match source: exact alias / family fallback`
+- 候选集为 French / Russian / Italian 三个 `M4A2 Sherman` 定义
+- 最终命中 `French-M4A2 Sherman.txt`
+4. `American_M4A2_Sherman_late_Report.txt` 已确认：
+- `match source: exact alias / family fallback`
+- 1944-06 下 French / Italian 并列最高，当前按文件路径顺序落到 French
+5. `AMST_Report.txt` 已从 `223/225 resolved` 提升到 `225/225 resolved`。
+6. `FirefightWorkbench_Report.txt` 已确认 `AMST` 全解析完成。
+
+备注：
+1. 这轮修复解决的是“deployment 名称找不到同车族定义”的问题，不等于证明 French nationality 就是 American M4A2 的最终运行时 nationality。
+2. 当前 resolver 只是为反编译验证和实例映射提供了同车族代理落点。
+3. 真正完整复刻时应继续把：
+- chassis / armament definition
+- crew nationality / uniform / faction identity
+拆成两个层面处理。
+4. 本轮修改前备份：
+- `交战反编译成果\备份\20260402_141320_family_fallback_stage`
+5. 本轮最终验证快照：
+- `交战反编译成果\备份\20260402_141900_family_fallback_verified_stage`
+
+[2026-04-02 16:25 | 当日第10次更新 | cross-map payload statistics 接入主报告]
+类型：report aggregation + build/publish refresh + handoff documentation
+主要改动：
+1. 在 `FirefightRebuild.Workbench\\FirefightAssetInspector.cs` 中新增 `WriteDeploymentPayloadStatistics()`，将 `Maps` 与 `Custom Maps` 的所有 `*-scenarios.dat` 聚合为统一统计。
+2. 新报告节新增了以下信号：
+- `flag9` 全局值分布
+- mixed scenario 的 `0 -> 1` 顺序一致性
+- `flag9` 与 `delay>0` 的关联
+- `prefix32` 非零分布与高频值
+- `flag4` 非零分布、类别分布与共现关系
+3. 新增 `WriteUpdatedNextSteps()`，让总报告从本轮开始输出干净的第六节建议，而不继续依赖旧乱码标题字符串。
+4. 刷新了：
+- `FirefightWorkbench_Report.txt`
+- `FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+
+验证结果：
+1. `dotnet build` 成功，`0 warning / 0 error`。
+2. 重新生成的总报告已包含 `五、Deployment Payload 统计`。
+3. 统计结果确认：
+- `flag9`：`0x2040, 1x3052, 2x1, 6x1, 9x1`
+- `246/246` mixed scenarios 均表现为先 `0` 后 `1`
+- `flag9=0` 的部署没有出现 `delay>0`
+- `flag4>0` 的 `166` 条样本全部是 `Infantry`，且全部位于 `flag9=1`
+4. 因此当前证据边界进一步收紧为：
+- `flag9` 最像 `side-slot 0/1`
+- `prefix32` 最像 deployment delay / reinforcement timing
+- `flag4` 最像少量特殊步兵使用的控制位
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightWorkbench_Report.txt`
+- `交战反编译成果\\FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+- `交战反编译成果\\游戏理解.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+
+本轮修改前备份：
+1. `交战反编译成果\\备份\\20260402_155345_pre_payload_stats_stage`
+本轮最终验证快照：
+1. `交战反编译成果\\备份\\20260402_162506_payload_stats_verified_stage`
+
+[2026-04-02 22:35 | 当日第11次更新 | FirefightDesktop 桌面地图任务浏览器落地]
+类型：桌面可视化程序创建 + 共享解析层增强 + 构建发布 + 交接文档回填
+主要改动：
+1. 重新审计当前成果目录，确认上一位 AI 已完成的是 `FirefightRebuild.Workbench` 逆向工作台与文档体系，而不是完整桌面战斗版。
+2. 在 `FirefightRebuild.Workbench\\FirefightAssetInspector.cs` 中新增结构化共享接口：
+- `GetMapBrowseSummaries()`
+- `TryLoadMapBrowseData()`
+- `TryLoadDefinitionBrowseData()`
+3. 在空目录 `交战反编译成果\\FirefightDesktop` 下新建 WinForms 桌面程序，直接复用共享解析层，首版能力包括：
+- 地图树浏览
+- 任务切换
+- `map.jpg` 底图显示
+- `world.dat` 尺寸映射下的部署点覆盖
+- 部署列表与定义文件详情查看
+- `map.jpg` 缺失时回退 tile 拼接
+4. 修复 `FirefightDesktop` 首次构建后的 3 个空引用警告，最终达到 `0 warning / 0 error`。
+5. 刷新发布物：
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+6. 使用发布版 Workbench 执行 `--map ASTM` smoke check，生成：
+- `交战反编译成果\\FirefightDesktop_WorkbenchSmokeCheck.txt`
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktop.csproj`
+- `交战反编译成果\\FirefightDesktop\\Program.cs`
+- `交战反编译成果\\FirefightDesktop\\AssetLocator.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\FirefightDesktop\\MapPreviewControl.cs`
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+- `交战反编译成果\\FirefightRebuild.Workbench\\publish\\win-x64-single\\FirefightWorkbench.exe`
+- `交战反编译成果\\FirefightDesktop_WorkbenchSmokeCheck.txt`
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+- `交战反编译成果\\游戏理解.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on `FirefightDesktop`：成功。
+4. 同样的 `dotnet publish` on `FirefightRebuild.Workbench`：成功。
+5. `FirefightWorkbench.exe --assets ... --map ASTM --output ...`：成功，已写出 `FirefightDesktop_WorkbenchSmokeCheck.txt`。
+
+备注：
+1. 这次交付的是“桌面逆向可视化浏览器”，不是完整可玩的 Firefight 复刻版。
+2. 当前最正确的下一步不是盲写战斗逻辑，而是继续拆 `world.dat` instance 区和 `flag4 / flag9 / metadata tail`，再往运行时模拟推进。
+3. 稳定备份快照已刷新到：`交战反编译成果\\备份\\20260402_223900_desktop_viewer_verified_stage`
+4. 文档镜像已刷新到：`交战反编译成果\\文档备份`
+
+[2026-04-02 22:49 | 当日第12次更新 | FirefightDesktop 接入 world prototype 摘要]
+类型：共享地图模型增强 + 桌面查看器摘要补强 + 构建发布刷新
+主要改动：
+1. 在 `FirefightRebuild.Workbench\\FirefightAssetInspector.cs` 的 `MapBrowseData` 中接入：
+- `WorldPrototypeTable`
+- `WorldTokenSample`
+- `WorldTailTokenSample`
+2. 在 `FirefightDesktop\\FirefightDesktopForm.cs` 的地图摘要里新增：
+- `Has contours`
+- `World prototype count`
+- `World prototype sample`
+- `World tail sample`
+3. 重新构建并重新发布：
+- `FirefightDesktop`
+- `FirefightRebuild.Workbench`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on 两个项目：成功。
+
+备注：
+1. 这一增量的目的不是再做新报告，而是把 `world.dat` 原型层证据推到桌面 UI。
+2. 它为继续拆 `world.dat` instance 区提供了更直接的人工核对入口。
+
+[2026-04-02 23:04 | 当日第13次更新 | anomaly 报告入口与 contours/group 过滤接入]
+类型：逆向诊断增强 + 桌面可视化增强 + 构建发布刷新
+主要改动：
+1. `FirefightRebuild.Workbench\\Program.cs` 新增 `--anomalies` 模式，默认输出文件名为 `FirefightWorkbench_Anomalies.txt`。
+2. `FirefightRebuild.Workbench\\FirefightAssetInspector.cs` 新增：
+- `BuildAnomalyReport(string? mapCode = null)`
+- `GetFlag9OutlierObservations()`
+- `GetFlag4ActiveObservations()`
+- `FormatObservationDetail()`
+3. anomaly 报告现在会逐条写出：
+- `MapCode / Scenario / Unit / RecordOffset`
+- `Category`
+- `DefinitionPath`
+- `X / Y / AngleRadians / ExtraValue`
+- `PrefixHex`
+- `flag4 / flag9 / delay`
+4. `FirefightDesktop\\MapPreviewControl.cs` 新增半透明 contours 叠加渲染。
+5. `FirefightDesktop\\FirefightDesktopForm.cs` 新增：
+- `Show Contours`
+- `Deployment Filter`
+- `RefreshScenarioView()`
+6. 部署过滤当前保持中性命名：
+- `All`
+- `g0`
+- `g1`
+- `Other`
+7. 重新 build / publish 两个项目，并验证 anomaly 输出。
+
+影响文件：
+- `交战反编译成果\\FirefightRebuild.Workbench\\Program.cs`
+- `交战反编译成果\\FirefightRebuild.Workbench\\FirefightAssetInspector.cs`
+- `交战反编译成果\\FirefightDesktop\\MapPreviewControl.cs`
+- `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`
+- `交战反编译成果\\FirefightWorkbench_Anomalies_Check.txt`
+- `交战反编译成果\\FirefightWorkbench_Anomalies_FLAU.txt`
+
+验证结果：
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench`：成功，`0 warning / 0 error`。
+2. `dotnet build -c Release` on `FirefightDesktop`：成功，`0 warning / 0 error`。
+3. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` on 两个项目：成功。
+4. anomaly 全量验证成功，输出：
+- `交战反编译成果\\FirefightWorkbench_Anomalies_Check.txt`
+5. anomaly 定点验证成功，输出：
+- `交战反编译成果\\FirefightWorkbench_Anomalies_FLAU.txt`
+6. 已正式确认三个 `flag9` 离群值都来自 tutorial 车辆样本。
+
+备注：
+1. `Other` 过滤对当前桌面查看器特别关键，因为它让 `flag9` 离群样本不再被大量 `g0/g1` 部署淹没。
+2. 这一步把“摘要统计”进一步推进成“逐样本证据检查”。
+
+[2026-04-02 23:46 | 当日第14次更新 | FirefightDesktop 场景异常摘要/导出与文档回填]
+类型：桌面逆向取证增强 + handoff 文档补写 + 重新发布
+主要改动：
+1. 重新核对工程状态，确认上轮 `Flag4>0 / Delay>0` 过滤与 scenario group 计数已经写进代码，但没有写回 4 份 handoff 文档。
+2. 修改 `交战反编译成果\\FirefightDesktop\\FirefightDesktopForm.cs`：
+- 新增 `Export Scenario Snapshot` 按钮
+- 新增 `currentVisibleDeployments`
+- map summary 增加 map 级 `g0/g1/other/flag4/delayed` 统计
+- map summary 增加 map 级 `Other / Flag4 / Delayed` 样本
+- scenario summary 增加当前 filter 可见数
+- scenario summary 增加 `Filtered / Other / Flag4 / Delayed` 样本列表
+- 新增场景快照导出文本生成逻辑
+- 导出目录固定为 `交战反编译成果\\ScenarioExports`
+3. 构建验证：
+- 首次 `dotnet build -c Release` 报一个局部变量重名错误，已修复
+- 再次 `dotnet build -c Release` 成功，`0 warning / 0 error`
+- `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` 成功
+4. 发布版 EXE 已刷新：
+- `交战反编译成果\\FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`
+
+工程意义：
+1. 当前 `FirefightDesktop` 已经不只是“把点画到地图上”，而是开始承担 scenario-level anomaly 检查界面。
+2. 后续拆 `tutorial outlier vehicles`、`flag4 infantry`、`delay>0` 样本时，不再必须先翻 Workbench CLI 报告。
+3. 这轮仍然没有把项目错误包装成“完整可玩 Firefight”，新增的是逆向证据层，不是战斗 runtime。
+[2026-04-03 08:45 | Iteration 18 | world.dat instance linkage]
+Type: reverse-engineering expansion + Desktop viewer verification + stability fixes
+Main changes:
+1. Added `world.dat` instance-table parsing to `FirefightAssetInspector.cs`.
+2. Added `WorldInstanceTable`, `WorldInstanceEntry`, and `ScenarioSpecialPointWorldLink` data structures.
+3. Attached nearest-world-object links to tutorial special routes.
+4. Extended `ScenarioSnapshotFormatter.cs` to emit world-instance counts and world-link samples.
+5. Extended `FirefightDesktopForm.cs` so the definition panel shows per-point nearest-object data.
+6. Extended `MapPreviewControl.cs` so route-node tooltip shows nearest object and distance; start/end markers are visually distinct.
+7. Fixed duplicate route-offset dictionary risk in `MapPreviewControl.cs`.
+8. Added soft-fail image loading and explicit `ToolTip` disposal.
+9. Refreshed `FirefightDesktop\\publish\\win-x64-single\\FirefightDesktop.exe`.
+Verification:
+1. `dotnet build -c Release` passed for Workbench and Desktop.
+2. `dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true -o publish\\win-x64-single` passed for Desktop.
+3. Export checks passed:
+   - `H112_Tutorial_Other_WorldLink_Test.txt`
+   - `FLAU_Tutorial_Other_WorldLink_Test.txt`
+   - `TRCH_Tutorial_Other_WorldLink_Test.txt`
+Key result:
+Tutorial special-route points now have stable nearest-object linkage into the parsed `world.dat` object table, which is the first verified bridge between `scenarios.dat` script-like route data and `world.dat` spatial object data.
+
+[2026-04-03 09:10 | Iteration rule update]
+The user explicitly set the only valid project termination condition to:
+`complete playable + well-optimized + reverse-engineered-complete .exe program`.
+This means future rounds must treat current Workbench/Desktop tooling milestones as intermediate progress only, never as final completion.
+
+[2026-04-03 09:12 | Iteration 19 | world object overlay]
+Type: Desktop reverse-engineering visualization upgrade + project rule persistence
+Main changes:
+1. Added `Show World Objects` toggle to Desktop.
+2. `MapPreviewControl.cs` now draws parsed `WorldInstanceEntry` markers on the map.
+3. Selected tutorial routes now highlight linked nearest world objects.
+4. World objects now expose hover tooltip info in the preview.
+5. Refreshed `FirefightDesktop.exe` publish after successful rebuild.
+6. Persisted the user's new global stop condition into all four handoff documents.
+Self-check note:
+One compile-time variable-name collision was introduced and then fixed in the same round; final build is green.
+
+[2026-04-03 10:10 | Iteration 20 | world instance status taxonomy]
+Type: reverse-engineering diagnostics refinement + probe rejection capture + handoff resync
+Main changes:
+1. Expanded `FirefightAssetInspector.cs` world reporting with:
+   - `world instance status`
+   - `world coordinate anomalies`
+   - `world header->prototype sample`
+2. Added per-map status taxonomy for parsed world instance tables:
+   - `canonical-0xCD00`
+   - `canonical+unresolved-tail`
+   - `variant-headers`
+   - `sentinel-coordinates`
+3. Added rejected-probe capture when the post-prototype `declaredCount` is invalid or impossible.
+4. Refreshed `FirefightWorkbench_WorldInstance_Anomaly_Check.txt`.
+
+Verification:
+1. `dotnet build -c Release` on `FirefightRebuild.Workbench` passed with `0 warning / 0 error`.
+2. `dotnet build -c Release` on `FirefightDesktop` passed with `0 warning / 0 error`.
+3. New anomaly report snapshot confirms:
+   - `world maps=46`
+   - `world instance anomalies=26`
+   - `world canonical 0xCD00 maps=23`
+   - `world variant-header maps=9`
+   - `world sentinel-coordinate maps=10`
+   - `world rejected probes=3`
+4. Rejected probe maps are now explicit:
+   - `JLRD -> invalid-count 2229469`
+   - `SELI -> invalid-count 843513858`
+   - `UA1T -> invalid-count 1112932356`
+
+Key result:
+The project no longer treats all world-instance irregularities as one flat bucket. It now distinguishes:
+1. canonical maps
+2. mixed-header but still spatially coherent maps
+3. sentinel/overflow-coordinate maps
+4. outright probe failures after the prototype table
+
+Most important engineering implication:
+The current `8-byte instance` model is still useful, but only as a family of related layouts. `BPAL` strongly suggests `headerWord` carries real per-instance meaning instead of being a constant magic for every map.
+
+[2026-04-04 01:15 | Iteration 21 | world diagnostics summary propagation + JLRD reclassification]
+Type: world.dat diagnostics propagation + split-count verification + handoff correction
+Main changes:
+1. Extended `FirefightAssetInspector.cs` so anomaly labels now include `sig=UnknownHeader/PayloadMarker`.
+2. Added `BuildMapBrowseWorldDiagnosticsSummary(...)` and stored the result in `MapBrowseData.WorldDiagnosticsSummary`.
+3. Updated `ScenarioSnapshotFormatter.cs` so map/scenario summaries and export text now consume the shared `WorldDiagnosticsSummary` instead of reassembling a thinner subset.
+4. Updated summary-side world-instance counts to use `WorldInstanceProbe`, so rejected/alternate models are no longer hidden behind `accepted table only`.
+5. Regenerated:
+   - `FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+   - `_tmp_TRCH_map_report_20260403_3.txt`
+   - `_tmp_BPAL_map_report_20260403_2.txt`
+   - `_tmp_CAMB_map_report_20260403_2.txt`
+   - `_tmp_JLRD_map_report_20260403_2.txt`
+
+Verification:
+1. `dotnet build -c Release` passed for `FirefightRebuild.Workbench` with `0 warning / 0 error`.
+2. `dotnet build -c Release` passed for `FirefightDesktop` with `0 warning / 0 error`.
+3. Representative anomaly reports now confirm:
+   - `TRCH = 1002/256192`, `canonical+unresolved-tail`, `countModel=int32`
+   - `BPAL = 1005/461887`, `variant-headers`, `countModel=int32`
+   - `CAMB = 1005/540469`, `sentinel-coordinates`, `countModel=int32`
+   - `JLRD = 1001/0`, `variant-headers`, `countModel=uint16+prelude(0x0022)`
+4. The regenerated full anomaly report now shows:
+   - `world variant-header maps = 11`
+   - `world sentinel-coordinate maps = 11`
+   - `world rejected probes = 0`
+
+Key result:
+The shared Desktop/summary/export path now exposes the same world-diagnostics evidence tier as the anomaly report, and the old “`JLRD/SELI/UA1T` are direct rejected-count failures” statement is no longer current.
+
+Residual gap:
+1. `nearby start candidates` are still raw candidates, not yet clustered into explicit world-format families.
+2. Desktop still lacks a dedicated `World Diagnostics` panel; the information currently lives inside summary text.
+[2026-04-04 01:12 | 当日第9次更新 | world.dat count-model 双探测 + JLRD 修复 + acceptance gate 回收]
+类型：`world.dat` 逆向解析推进 + Workbench/共享摘要诊断增强 + 自检后收紧误判门槛
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 中把 `world instance probe` 扩成双模型探测：
+- 现有 `Int32 declaredCount`
+- 新增 `UInt16 count + UInt16 prelude`
+2. 为 `WorldInstanceTable` 增加 `CountModel / CountPreludeWord`，并把 `count model` 写入：
+- map report
+- anomaly detail
+- nearby start candidates
+- `MapBrowseData.WorldDiagnosticsSummary`
+3. 双模型首轮验证后发现副作用：`SELI/UA1T` 被错误洗成极小 count 的 accepted probe。
+4. 随后在同文件补上二次 gate：
+- 对 `useSplitCountWord && prelude != 0 && declaredCount < 32` 的候选直接拒绝
+- 保留 `JLRD = 1245` 的有效 split-count 解析
+- 把 `SELI/UA1T` 拉回 rejected 桶
+5. 刷新：
+- `FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `_tmp_JLRD_map_report_20260403_countmodel.txt`
+- `_tmp_TRCH_map_report_20260403_countmodel.txt`
+- `_tmp_BPAL_map_report_20260403_countmodel.txt`
+- `_tmp_CAMB_map_report_20260403_countmodel.txt`
+影响文件：
+- `交战反编译成果\FirefightRebuild.Workbench\FirefightAssetInspector.cs`
+- `交战反编译成果\FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `交战反编译成果\计划任务备份.txt`
+- `交战反编译成果\过往更新记录.txt`
+- `交战反编译成果\过往对话记录.txt`
+- `交战反编译成果\长期记忆工作流.txt`
+验证结果：
+1. `2026-04-04 00:32` 左右重新执行 `dotnet build -c Release`：
+- `FirefightRebuild.Workbench` -> `0 warning / 0 error`
+- `FirefightDesktop` -> `0 warning / 0 error`
+2. `2026-04-04 00:35:17` 到 `00:35:19` 重新生成并核对代表图报告：
+- `JLRD`：从旧的 `invalid-count 2229469` 变成 `variant-headers / 1245 instances / countModel = uint16+prelude(0x0022)`，坐标异常为 `0`
+- `TRCH`：仍是 `canonical+unresolved-tail / countModel = int32`
+- `BPAL`：仍是 `variant-headers / countModel = int32`
+- `CAMB`：仍是 `sentinel-coordinates / countModel = int32`
+3. `2026-04-04 01:11:47` 刷新全量 `FirefightWorkbench_WorldInstance_Anomaly_Check.txt` 后确认：
+- `world canonical 0xCD00 maps = 23`
+- `world variant-header maps = 10`
+- `world sentinel-coordinate maps = 10`
+- `world rejected probes = 2`
+- `JLRD` 保持已修复
+- `SELI` 回到 `rejected: invalid-count 843513858`
+- `UA1T` 回到 `rejected: invalid-count 1112932356`
+关键结论：
+1. `JLRD` 不是“坏 world”，而是当前主 offset 上的 `count word` 读法与 canonical 家族不同；`UInt16 count + prelude` 已经能稳定读出 `1245` 条实例。
+2. `SELI/UA1T` 说明 split-count 不能无门槛放开，否则会把极小 count 假阳性误判成 accepted probe。
+3. 当前更可信的状态不是“所有 rejected 全被修好”，而是：
+- `JLRD` 被明确救回
+- `SELI/UA1T` 继续保留为 rejected family
+- rejected family 仍然需要进一步总结 alternate-start / extra-block / format-family 规律
+备注：
+1. 本轮最重要的不是只加了一个新模型，而是完成了一次完整的“放宽 -> 验证 -> 发现误判 -> 收紧”的拉尔夫循环。
+2. 当前项目仍是逆向与验证工程，不得把本轮成果误写成完整 runtime 或最终可玩 Firefight。
+[2026-04-04 14:40 | 当日第10次更新 | world.dat supplemental prototype tail 恢复完成]
+类型：`world.dat` 补尾结构逆向 + Workbench 报告增强 + anomaly 回归验证
+主要改动：
+1. 在 `FirefightRebuild.Workbench\FirefightAssetInspector.cs` 中把 `ResolveWorldData(...)` 收束到 `ResolveWorldPrototypeAndProbe(...)`，不再让外层路径保留旧的 prototype/probe/再补尾分叉。
+2. 在以下输出口新增 supplemental tail 暴露：
+- 普通 map 报告：`world 原型补尾`
+- anomaly label：`prototypeTail=...`
+- anomaly detail：`prototype supplemental tail`
+- browse diagnostics：`World prototype supplemental tail`
+3. 第一轮验证后发现仅接线不够，`TRCH` 仍显示 `prototype supplemental tail: none`。
+4. 继续做字节级自检，确认 unresolved 记录后的真实结构是：
+- `UInt16 length`
+- ASCII name
+- `3-byte tail flags`
+  而不是常规 prototype table 的 `2-byte flags`
+5. 随后把 `TryAppendSupplementalWorldPrototypeSegment(...)` 改成双探测：
+- `TryParseWorldPrototypeEntries(...)`
+- `TryParseWorldPrototypeTailEntries(...)`
+  并择优使用解析成功且条目数更高的结果。
+6. 刷新：
+- `FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `_tmp_TRCH_map_report_20260404_tailprobe.txt`
+- `_tmp_BPAL_map_report_20260404_tailprobe.txt`
+- `_tmp_NSPN_map_report_20260404_tailprobe.txt`
+- `_tmp_JLRD_map_report_20260404_tailprobe.txt`
+- `_tmp_TRCH_report_20260404_tailprobe.txt`
+- `_tmp_NSVL_report_20260404_tailprobe.txt`
+- `_tmp_TKYO_report_20260404_tailprobe.txt`
+影响文件：
+- `交战反编译成果\FirefightRebuild.Workbench\FirefightAssetInspector.cs`
+- `交战反编译成果\FirefightWorkbench_WorldInstance_Anomaly_Check.txt`
+- `交战反编译成果\计划任务备份.txt`
+- `交战反编译成果\过往更新记录.txt`
+- `交战反编译成果\过往对话记录.txt`
+验证结果：
+1. `dotnet build -c Release`：
+- `FirefightRebuild.Workbench` -> `0 warning / 0 error`
+- `FirefightDesktop` -> `0 warning / 0 error`
+2. 直接运行 `bin\Release\net8.0\FirefightWorkbench.dll` / `dotnet run` 会触发 `0x800711C7` 的应用程序控制策略阻断；本轮改用重新发布后的：
+- `FirefightRebuild.Workbench\publish\win-x64-single\FirefightWorkbench.exe`
+  完成实际报告验证。
+3. 代表图验证确认：
+- `TRCH`：`world 原型补尾 = 0x17CF3C-0x17D113(27)`，`unresolved = 0`，并已从 anomaly 列表移除
+- `BPAL`：`prototypeTail = 0x293FC2-0x2941ED(33)`，`unresolved = 0`
+- `NSPN`：`prototypeTail = 0x3F2671-0x3F28C5(36)`，`unresolved = 0`
+- `JLRD`：保持 `variant-headers / countModel = uint16+prelude(0x0022)`，同时 `prototypeTail = 0x80A240-0x80A4A3(35)`，`unresolved = 0`
+- `NSVL`：`world 原型补尾 = 0x18D4D4-0x18D6A8(26)`，`unresolved = 0`
+- `TKYO`：`world 原型补尾 = 0x92690D-0x926CC3(54)`，`unresolved = 0`
+4. 全量 anomaly 回归（新报告时间 `2026-04-04 14:35:16`）：
+- `world instance anomalies = 23`（旧基线 `26`）
+- `world canonical 0xCD00 maps = 23`
+- `world variant-header maps = 10`
+- `world sentinel-coordinate maps = 10`
+- `world rejected probes = 2`
+5. anomaly 数从 `26 -> 23` 已核实为三张旧的 `canonical+unresolved-tail` 地图被救回：
+- `NSVL`
+- `TKYO`
+- `TRCH`
+6. `BPAL / NSPN / JLRD / JWVG / WSAW` 的 unresolved 也已归零，但它们仍因 `variant-header` 或 `sentinel-coordinate` 被保留在 anomaly 报告中。
+7. `SELI / UA1T` 保持 rejected，没有被新的补尾逻辑误洗白。
+关键结论：
+1. 当前证据已经足够支持：部分 `world.dat` 在实例尾部后还挂着一段 supplemental prototype block。
+2. 这段 block 至少存在一类 `3-byte tail flags` 变体；如果继续只用标准 prototype parser，会系统性漏读。
+3. 当前更稳的下一步已经不是“继续证明有没有 tail”，而是要总结：
+- 为什么有些地图会带完整 supplemental block
+- 它与主 prototype table 的关系是镜像、增量还是备用表
+备注：
+1. 本轮又完成了一次完整拉尔夫循环：
+- 先接线
+- 再验证失败
+- 再看原始字节
+- 再修 tail parser
+- 再做全量回归
+2. 当前成果仍是逆向解析进展，不是最终 runtime 完成态。

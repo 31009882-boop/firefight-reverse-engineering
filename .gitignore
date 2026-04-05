@@ -1,0 +1,40 @@
+# Build outputs
+**/bin/
+**/obj/
+**/publish/
+
+# Node / browser automation
+**/node_modules/
+**/.playwright/
+**/playwright-report/
+**/test-results/
+
+# Python caches and local tooling
+**/__pycache__/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.ipynb_checkpoints/
+.dotnet_cli/
+.skilldeps/
+
+# IDE / OS noise
+.vs/
+.vscode/
+Thumbs.db
+Desktop.ini
+
+# Local backups and mirrors
+交战反编译成果/备份/
+交战反编译成果/文档备份/
+交战反编译成果/临时备份_*/
+
+# Generated scenario exports and temporary reports
+交战反编译成果/ScenarioExports/
+交战反编译成果/_tmp_*.txt
+
+# Large extracted original assets: keep local, do not version by default
+交战反编译原件/
+Tools/gh-portable/
+Tools/gh-portable-tmp/
+交战反编译成果/Tools/GitHubCli/

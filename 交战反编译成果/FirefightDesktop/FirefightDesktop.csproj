@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>FirefightDesktop</AssemblyName>
+    <RootNamespace>FirefightDesktop</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FirefightRebuild.Workbench\FirefightAssetInspector.cs" Link="Shared\FirefightAssetInspector.cs" />
+    <Compile Include="..\FirefightRebuild.Workbench\ScenarioSnapshotFormatter.cs" Link="Shared\ScenarioSnapshotFormatter.cs" />
+  </ItemGroup>
+</Project>
