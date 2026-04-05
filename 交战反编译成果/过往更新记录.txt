@@ -1,3 +1,43 @@
+[2026-04-05 11:35 | 次日第6次更新 | public GitHub 仓库创建与首推完成]
+类型：Git 初始化收口 + 首个 commit + GitHub 仓库创建与推送
+主要改动：
+1. 为当前根仓库设置本地提交作者：
+- `user.name = 31009882-boop`
+- `user.email = 273686112+31009882-boop@users.noreply.github.com`
+2. 执行首个提交：
+- commit: `11385c6`
+- message: `Initial reverse-engineering workspace import`
+3. 使用 `gh repo create` 创建公开仓库并直接推送当前 `main`：
+- `31009882-boop/firefight-reverse-engineering`
+4. 将本地仓库绑定到：
+- `origin = https://github.com/31009882-boop/firefight-reverse-engineering.git`
+
+影响文件：
+- `交战反编译成果\\计划任务备份.txt`
+- `交战反编译成果\\过往更新记录.txt`
+- `交战反编译成果\\过往对话记录.txt`
+- Git 历史：新增 root commit `11385c6`
+
+验证结果：
+1. `git commit`：成功，创建 root commit `11385c6`。
+2. `gh repo create ... --public --source ... --remote origin --push`：成功。
+3. `git remote -v`：已显示 `origin` fetch/push URL。
+4. `git status -sb`：当前为 `## main...origin/main`，工作区干净。
+5. `gh repo view 31009882-boop/firefight-reverse-engineering --json ...`：返回：
+- `nameWithOwner = 31009882-boop/firefight-reverse-engineering`
+- `visibility = PUBLIC`
+- `defaultBranchRef = main`
+- `url = https://github.com/31009882-boop/firefight-reverse-engineering`
+
+关键结论：
+1. 当前项目已从“只有本地 Git 仓库”进入“已绑定 GitHub 公开仓库”的状态。
+2. 从这一步开始，`gh-address-comments / gh-fix-ci / yeet` 这类 GitHub 流程在仓库上下文上已经具备基础条件。
+3. 但当前还没有 PR，也没有 CI 运行历史；这些要等后续新分支/新提交/工作流触发后才会出现。
+
+备注：
+1. 本轮没有修改运行时代码，也没有改 `FirefightDesktop.exe` 产物。
+2. 本轮临时备份目录：`交战反编译成果\\备份\\20260405_113500_repo_publish_handoff_tmp`
+
 [2026-04-05 11:25 | 次日第5次更新 | GitHub 认证恢复核对与仓库上下文确认]
 类型：GitHub 认证检查 + Git/remote 状态核实 + handoff 纠偏
 主要改动：
