@@ -27,6 +27,9 @@
 3. 下一轮最值钱的方向已经更明确：
 - `SELI` -> prototype-gap / supplemental-resolution
 - `UA1T` -> sentinel-adjacent / alternate-count
+4. 随后我又把这轮代码提交并推送到了远端：
+- commit: `3a8bc8b`
+- `Add dedicated world diagnostics panel`
 
 下一轮最值得继续的点：
 1. 直接围绕 `SELI` 和 `UA1T` 做 parser-facing targeted work，而不是继续做泛化 UI 装饰。

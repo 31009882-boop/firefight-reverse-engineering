@@ -65,9 +65,11 @@
 1. 已完成 `过往更新记录.txt / 过往对话记录.txt` 回填
 2. 已生成稳定快照：`交战反编译成果\\备份\\20260405_134500_worlddiag_panel_verified_stage`
 3. 已刷新 `交战反编译成果\\文档备份`
-4. 下一步可直接选择：
-- 将本轮代码提交并推送到已创建的 GitHub 仓库
-- 或继续围绕 `SELI/UA1T` 做 parser-facing targeted work
+4. 本轮代码已提交并推送：
+- commit: `3a8bc8b`
+- message: `Add dedicated world diagnostics panel`
+- remote: `origin/main`
+5. 下一步可直接继续围绕 `SELI/UA1T` 做 parser-facing targeted work
 
 [2026-04-05 11:35 | GitHub 仓库已创建并首推 | public origin 绑定完成]
 

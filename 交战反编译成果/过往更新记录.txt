@@ -47,6 +47,10 @@
 2. 本轮运行时根目录产物备份：`交战反编译成果\\备份\\20260405_120000_worlddiag_panel_tmp\\runtime_root_before_refresh`
 3. 本轮稳定快照已生成：`交战反编译成果\\备份\\20260405_134500_worlddiag_panel_verified_stage`
 4. `交战反编译成果\\文档备份` 已刷新
+5. 本轮代码已提交并推送：
+- commit: `3a8bc8b`
+- message: `Add dedicated world diagnostics panel`
+- remote: `origin/main`
 
 [2026-04-05 11:35 | 次日第6次更新 | public GitHub 仓库创建与首推完成]
 类型：Git 初始化收口 + 首个 commit + GitHub 仓库创建与推送
